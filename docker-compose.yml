@@ -1,11 +1,30 @@
+version: '3'
+
 services:
-  mysql:
-    image: mysql:8.0
+  app:
+    build: .
+    ports:
+      - "3000:3000"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: fresia
+      - DATABASE_URL=mysql://fresia:fresia@db:3306/fresia
+      - JWT_SECRET=dev-secret-change-in-production
+      - NODE_ENV=development
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+
+  db:
+    image: mysql:8.0
     ports:
       - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=fresia
+      - MYSQL_USER=fresia
+      - MYSQL_PASSWORD=fresia
     volumes:
       - mysql_data:/var/lib/mysql
 

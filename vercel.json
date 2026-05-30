@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "regions": ["gru1"],
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "JWT_SECRET": "@jwt-secret",
+    "MP_ACCESS_TOKEN": "@mp-access-token",
+    "NEXT_PUBLIC_MP_PUBLIC_KEY": "@mp-public-key"
+  }
+}

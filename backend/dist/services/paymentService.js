@@ -7,13 +7,14 @@ const webhookService_1 = require("./webhookService");
 exports.paymentService = {
     async processPayment(input) {
         try {
+            const payment = (0, mercadopago_1.getPaymentClient)();
             const order = await client_1.prisma.order.findUnique({
                 where: { id: input.orderId },
                 include: { items: true }
             });
             if (!order)
                 throw Object.assign(new Error('Pedido não encontrado'), { statusCode: 404 });
-            const result = await mercadopago_1.payment.create({
+            const result = await payment.create({
                 body: {
                     transaction_amount: parseFloat(String(order.total)),
                     description: `Pedido Frésia #${order.id}`,
@@ -64,10 +65,11 @@ exports.paymentService = {
     },
     async createPixPayment(input) {
         try {
+            const payment = (0, mercadopago_1.getPaymentClient)();
             const order = await client_1.prisma.order.findUnique({ where: { id: input.orderId } });
             if (!order)
                 throw Object.assign(new Error('Pedido não encontrado'), { statusCode: 404 });
-            const result = await mercadopago_1.payment.create({
+            const result = await payment.create({
                 body: {
                     transaction_amount: parseFloat(String(order.total)),
                     description: `Pedido Frésia #${order.id} — PIX`,

@@ -1,5 +1,5 @@
 import { prisma } from '@/prisma/client'
-import { payment } from '../lib/mercadopago'
+import { getPaymentClient } from '../lib/mercadopago'
 import { triggerWebhooks } from './webhookService'
 
 interface ProcessPaymentInput {
@@ -21,6 +21,7 @@ interface PixPaymentInput {
 export const paymentService = {
   async processPayment(input: ProcessPaymentInput) {
     try {
+      const payment = getPaymentClient()
       const order = await prisma.order.findUnique({
         where: { id: input.orderId },
         include: { items: true }
@@ -83,6 +84,7 @@ export const paymentService = {
 
   async createPixPayment(input: PixPaymentInput) {
     try {
+      const payment = getPaymentClient()
       const order = await prisma.order.findUnique({ where: { id: input.orderId } })
       if (!order) throw Object.assign(new Error('Pedido não encontrado'), { statusCode: 404 })
 

@@ -1,3 +1,3 @@
 import { Payment } from 'mercadopago';
-export declare const payment: Payment;
+export declare function getPaymentClient(): Payment;
 //# sourceMappingURL=mercadopago.d.ts.map

@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --lilac-50: #f5f0fb;
+    --lilac-100: #ece3f7;
+    --lilac-400: #c1aff5;
+    --lilac-500: #9b83e6;
+    --lilac-600: #8970d9;
+    
+    --petal-50: #fff0e8;
+    --petal-100: #fde9e3;
+    --petal-400: #f5a98c;
+    --petal-500: #f09070;
+    --petal-600: #e07560;
+    
+    --leaf-50: #edf7ef;
+    --leaf-100: #d4ecda;
+    --leaf-500: #5a9e68;
+    --leaf-600: #488e55;
+    
+    --warm-100: #fef5e8;
+    --warm-200: #fde8d0;
+    --warm-400: #f5b878;
+    --warm-700: #b88a3a;
+    
+    --forest-600: #1e5631;
+    
+    --ink-50: #f9f8fc;
+    --ink-100: #f3f1f8;
+    --ink-200: #e8e4ef;
+    --ink-300: #bab6c7;
+    --ink-400: #9991aa;
+    --ink-500: #6b6579;
+    --ink-600: #4a4558;
+    --ink-700: #3a3348;
+    --ink-800: #1f1c26;
+    --ink-900: #100e18;
+  }
+
+  body {
+    @apply font-body text-ink-800 bg-ink-50;
+  }
+}
+
+/* Overlay claro para dialogs/sheets — Tom Frésia */
+[data-radix-dialog-overlay] {
+  background-color: rgba(31, 28, 38, 0.25) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}

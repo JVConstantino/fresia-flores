@@ -1,0 +1,133 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,400;1,600&family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .mock-wrap { font-family: 'DM Sans', sans-serif; border: 1px solid #e8e4ef; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .mock-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #6b6579; padding: 8px 14px; background: #f3f1f8; border-bottom: 1px solid #e8e4ef; }
+
+  /* Shared */
+  .s-head { padding: 20px 20px 0; }
+  .s-title { font-family: 'Fraunces', serif; font-style: italic; font-size: 28px; color: #1f1c26; }
+  .s-title em { color: #8970d9; }
+  .s-sub { font-size: 12px; color: #6b6579; margin-top: 4px; }
+  .chips { display: flex; gap: 8px; padding: 12px 20px; border-bottom: 1px solid #e8e4ef; flex-wrap: wrap; }
+  .chip { padding: 7px 14px; border: 1px solid #e8e4ef; border-radius: 999px; font-size: 12px; color: #6b6579; background: white; }
+  .chip.on { background: #1f1c26; color: white; border-color: #1f1c26; }
+  .chip span { opacity: .5; margin-left: 4px; font-size: 11px; }
+
+  /* Cards */
+  .card { background: white; border: 1px solid #e8e4ef; border-radius: 16px; overflow: hidden; }
+  .card-img { background: linear-gradient(135deg, #ece3f7 0%, #fde9e3 100%); height: 160px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  .card-body { padding: 12px 14px; }
+  .card-cat { font-size: 10px; color: #9b83e6; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 4px; }
+  .card-name { font-size: 13px; color: #1f1c26; font-weight: 500; margin-bottom: 2px; }
+  .card-var { font-size: 11px; color: #6b6579; margin-bottom: 8px; }
+  .card-foot { display: flex; align-items: center; justify-content: space-between; }
+  .card-price { font-family: 'Fraunces', serif; font-style: italic; font-size: 17px; color: #1f1c26; }
+  .card-btn { width: 30px; height: 30px; border-radius: 50%; background: #1f1c26; color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+  /* Layout A - sidebar */
+  .lay-a { display: grid; grid-template-columns: 200px 1fr; gap: 16px; padding: 16px 20px; }
+  .sidebar { display: flex; flex-direction: column; gap: 10px; }
+  .sb-card { background: white; border: 1px solid #e8e4ef; border-radius: 10px; padding: 12px; }
+  .sb-title { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #1f1c26; margin-bottom: 10px; }
+  .sb-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 11px; color: #6b6579; }
+  .sb-check { width: 14px; height: 14px; border: 1px solid #e8e4ef; border-radius: 4px; }
+  .sb-check.on { background: #1f1c26; border-color: #1f1c26; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-3-full { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px 20px; }
+
+  /* Sort row */
+  .sort-row { display: flex; align-items: center; justify-content: space-between; padding: 0 20px 12px; }
+  .sort-count { font-size: 12px; color: #6b6579; }
+  .sort-sel { font-size: 12px; color: #1f1c26; border: 1px solid #e8e4ef; border-radius: 8px; padding: 5px 10px; background: white; }
+</style>
+
+<h2>Página de Loja — qual layout prefere?</h2>
+<p class="subtitle">O protótipo tem sidebar com filtros. Mostre se prefere manter ou simplificar.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Sidebar + grid (protótipo)</h3>
+      <p>Filtros laterais sticky (categoria, preço). Grid de 4 colunas à direita. Mais poderoso para loja grande.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Chips de categoria + grid (sem sidebar)</h3>
+      <p>Barra de chips horizontais para filtrar por categoria. Grid de 3 colunas full-width. Mais limpo e simples.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mock-wrap">
+    <div class="mock-label">Opção A — Sidebar + Grid 4 colunas</div>
+    <div class="s-head">
+      <div class="s-title">Nossa <em>Loja</em></div>
+      <div class="s-sub">Flores frescas, entregues com carinho</div>
+    </div>
+    <div class="chips">
+      <div class="chip on">Todas <span>24</span></div>
+      <div class="chip">Buquês <span>8</span></div>
+      <div class="chip">Arranjos <span>6</span></div>
+      <div class="chip">Plantas <span>5</span></div>
+      <div class="chip">Presentes <span>5</span></div>
+    </div>
+    <div class="lay-a">
+      <div class="sidebar">
+        <div class="sb-card">
+          <div class="sb-title">Categoria</div>
+          <div class="sb-item"><div class="sb-check on"></div> Buquês</div>
+          <div class="sb-item"><div class="sb-check"></div> Arranjos</div>
+          <div class="sb-item"><div class="sb-check"></div> Plantas</div>
+          <div class="sb-item"><div class="sb-check"></div> Presentes</div>
+        </div>
+        <div class="sb-card">
+          <div class="sb-title">Preço</div>
+          <div style="height:32px;background:linear-gradient(90deg,#ece3f7,#9b83e6);border-radius:4px;margin-bottom:8px;"></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#6b6579"><span>R$ 30</span><span>R$ 300</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="sort-row">
+          <div class="sort-count">24 produtos</div>
+          <select class="sort-sel"><option>Mais relevantes</option></select>
+        </div>
+        <div class="grid-4">
+          <div class="card"><div class="card-img">🌸</div><div class="card-body"><div class="card-cat">Buquês</div><div class="card-name">Buquê Primavera</div><div class="card-var">3 tamanhos</div><div class="card-foot"><div class="card-price">R$ 89</div><div class="card-btn">+</div></div></div></div>
+          <div class="card"><div class="card-img">🌺</div><div class="card-body"><div class="card-cat">Arranjos</div><div class="card-name">Arranjo Tropical</div><div class="card-var">2 tamanhos</div><div class="card-foot"><div class="card-price">R$ 120</div><div class="card-btn">+</div></div></div></div>
+          <div class="card"><div class="card-img">🌿</div><div class="card-body"><div class="card-cat">Plantas</div><div class="card-name">Suculenta Trio</div><div class="card-var">Único</div><div class="card-foot"><div class="card-price">R$ 55</div><div class="card-btn">+</div></div></div></div>
+          <div class="card"><div class="card-img">🎁</div><div class="card-body"><div class="card-cat">Presentes</div><div class="card-name">Kit Romântico</div><div class="card-var">1 opção</div><div class="card-foot"><div class="card-price">R$ 180</div><div class="card-btn">+</div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mock-wrap">
+    <div class="mock-label">Opção B — Chips + Grid 3 colunas (sem sidebar)</div>
+    <div class="s-head">
+      <div class="s-title">Nossa <em>Loja</em></div>
+      <div class="s-sub">Flores frescas, entregues com carinho</div>
+    </div>
+    <div class="chips">
+      <div class="chip on">Todas <span>24</span></div>
+      <div class="chip">Buquês <span>8</span></div>
+      <div class="chip">Arranjos <span>6</span></div>
+      <div class="chip">Plantas <span>5</span></div>
+      <div class="chip">Presentes <span>5</span></div>
+    </div>
+    <div class="sort-row">
+      <div class="sort-count">24 produtos</div>
+      <select class="sort-sel"><option>Mais relevantes</option></select>
+    </div>
+    <div class="grid-3-full">
+      <div class="card"><div class="card-img" style="height:180px">🌸</div><div class="card-body"><div class="card-cat">Buquês</div><div class="card-name">Buquê Primavera</div><div class="card-var">3 tamanhos</div><div class="card-foot"><div class="card-price">R$ 89</div><div class="card-btn">+</div></div></div></div>
+      <div class="card"><div class="card-img" style="height:180px">🌺</div><div class="card-body"><div class="card-cat">Arranjos</div><div class="card-name">Arranjo Tropical</div><div class="card-var">2 tamanhos</div><div class="card-foot"><div class="card-price">R$ 120</div><div class="card-btn">+</div></div></div></div>
+      <div class="card"><div class="card-img" style="height:180px">🌿</div><div class="card-body"><div class="card-cat">Plantas</div><div class="card-name">Suculenta Trio</div><div class="card-var">Único</div><div class="card-foot"><div class="card-price">R$ 55</div><div class="card-btn">+</div></div></div></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,119 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,400;1,600&family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .wrap { font-family: 'DM Sans', sans-serif; }
+  .mock-lbl { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #6b6579; padding: 8px 14px; background: #f3f1f8; border-bottom: 1px solid #e8e4ef; border-radius: 10px 10px 0 0; }
+  .mock-box { border: 1px solid #e8e4ef; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+
+  /* Shared */
+  .pg { padding: 20px; background: #f9f8fc; }
+  .cat { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #9b83e6; margin-bottom: 6px; }
+  .ttl { font-family: 'Fraunces', serif; font-style: italic; font-size: 24px; color: #1f1c26; line-height: 1.1; margin-bottom: 8px; }
+  .desc { font-size: 12px; color: #6b6579; line-height: 1.5; margin-bottom: 12px; }
+  .var-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #6b6579; margin-bottom: 6px; }
+  .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pill { padding: 5px 12px; border: 1px solid #e8e4ef; border-radius: 999px; font-size: 11px; color: #6b6579; }
+  .pill.on { border-color: #1f1c26; color: #1f1c26; font-weight: 600; }
+  .price { font-family: 'Fraunces', serif; font-style: italic; font-size: 28px; color: #1f1c26; margin-bottom: 14px; }
+  .add-btn { background: #1f1c26; color: white; border: none; border-radius: 999px; padding: 12px 24px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; }
+  .img-main { background: linear-gradient(135deg, #ece3f7, #fde9e3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+  .thumb { background: #f3f1f8; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid #e8e4ef; }
+  .thumb.on { border-color: #1f1c26; }
+
+  /* Layout A: gallery with thumbs + info */
+  .lay-a { display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; }
+  .gallery-a { display: grid; grid-template-columns: 70px 1fr; gap: 10px; }
+  .thumbs-a { display: flex; flex-direction: column; gap: 8px; }
+  .thumb-a { height: 65px; }
+  .main-a { height: 320px; }
+
+  /* Layout B: single image + info */
+  .lay-b { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .main-b { height: 320px; border-radius: 12px; }
+  .thumbs-b { display: flex; gap: 8px; margin-top: 8px; }
+  .thumb-b { flex: 1; height: 55px; }
+
+  /* Layout C: wide image top, info below */
+  .lay-c-img { height: 220px; border-radius: 12px; margin-bottom: 16px; }
+  .lay-c-info { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+</style>
+
+<h2>Página de Produto — qual layout prefere?</h2>
+<p class="subtitle">Baseado no protótipo existente. Escolha a estrutura da página de detalhe.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Galeria com miniaturas laterais + info (protótipo)</h3>
+      <p>Galeria à esquerda: thumbnails verticais + imagem principal grande. Info completa à direita. Layout clássico de e-commerce premium.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Imagem grande + thumbnails embaixo + info</h3>
+      <p>Imagem principal grande com miniaturas abaixo (horizontal). Info ao lado. Mais moderno, foco na foto.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mock-box">
+    <div class="mock-lbl">Opção A — Thumbnails verticais à esquerda (protótipo)</div>
+    <div class="pg">
+      <div class="lay-a">
+        <div class="gallery-a">
+          <div class="thumbs-a">
+            <div class="thumb thumb-a on">🌸</div>
+            <div class="thumb thumb-a">🌺</div>
+            <div class="thumb thumb-a">🌿</div>
+          </div>
+          <div class="img-main main-a">🌸</div>
+        </div>
+        <div>
+          <div class="cat">Buquês</div>
+          <div class="ttl">Buquê Primavera <em>Rosa</em></div>
+          <div class="desc">Um buquê fresco e delicado, perfeito para presentear em qualquer ocasião especial. Feito com flores selecionadas da estação.</div>
+          <div class="var-label">Tamanho</div>
+          <div class="pills">
+            <div class="pill on">Pequeno</div>
+            <div class="pill">Médio</div>
+            <div class="pill">Grande</div>
+          </div>
+          <div class="price">R$ 89,00</div>
+          <button class="add-btn">Adicionar ao carrinho</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mock-box">
+    <div class="mock-lbl">Opção B — Imagem grande + thumbnails horizontais abaixo</div>
+    <div class="pg">
+      <div class="lay-b">
+        <div>
+          <div class="img-main main-b">🌸</div>
+          <div class="thumbs-b">
+            <div class="thumb thumb-b on">🌸</div>
+            <div class="thumb thumb-b">🌺</div>
+            <div class="thumb thumb-b">🌿</div>
+          </div>
+        </div>
+        <div style="padding-top:8px">
+          <div class="cat">Buquês</div>
+          <div class="ttl">Buquê Primavera <em>Rosa</em></div>
+          <div class="desc">Um buquê fresco e delicado, perfeito para presentear em qualquer ocasião especial. Feito com flores selecionadas da estação.</div>
+          <div class="var-label">Tamanho</div>
+          <div class="pills">
+            <div class="pill on">Pequeno</div>
+            <div class="pill">Médio</div>
+            <div class="pill">Grande</div>
+          </div>
+          <div class="price">R$ 89,00</div>
+          <button class="add-btn">Adicionar ao carrinho</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

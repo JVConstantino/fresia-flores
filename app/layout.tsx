@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Fraunces, DM_Sans } from 'next/font/google'
+import { Layout } from '@/components/layout/Layout'
 import './globals.css'
 
 const fraunces = Fraunces({
@@ -27,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${fraunces.variable} ${dmSans.variable}`}>
       <body className="font-sans antialiased">
-        {children}
+        <Layout>
+          {children}
+        </Layout>
       </body>
     </html>
   )

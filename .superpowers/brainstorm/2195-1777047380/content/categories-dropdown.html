@@ -1,0 +1,117 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,400&family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .wrap { font-family: 'DM Sans', sans-serif; }
+  .mock-lbl { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #6b6579; padding: 8px 14px; background: #f3f1f8; border-bottom: 1px solid #e8e4ef; border-radius: 10px 10px 0 0; }
+
+  /* Fake header */
+  .fake-hdr { background: rgba(249,248,252,0.97); border-bottom: 1px solid #e8e4ef; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2; }
+  .logo { font-family: 'Fraunces', serif; font-style: italic; font-size: 20px; color: #9b83e6; }
+  .nav { display: flex; gap: 24px; }
+  .nav a { font-size: 13px; color: #6b6579; text-decoration: none; }
+  .nav a.active { color: #1f1c26; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+
+  /* Dropdown A — simples */
+  .dd-simple { position: relative; background: white; border: 1px solid #e8e4ef; border-radius: 12px; padding: 8px; min-width: 200px; box-shadow: 0 8px 24px rgba(0,0,0,.08); margin-top: 4px; }
+  .dd-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #1f1c26; cursor: pointer; }
+  .dd-item:hover { background: #f3f1f8; }
+  .dd-item .count { font-size: 11px; color: #9b83e6; background: #ece3f7; border-radius: 999px; padding: 1px 7px; }
+  .dd-item.active { color: #9b83e6; font-weight: 500; }
+
+  /* Mega menu B */
+  .mega { position: relative; background: white; border: 1px solid #e8e4ef; border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,.1); display: grid; grid-template-columns: 180px 1fr; gap: 24px; margin-top: 4px; }
+  .mega-cats { display: flex; flex-direction: column; gap: 2px; border-right: 1px solid #e8e4ef; padding-right: 20px; }
+  .mega-cat { padding: 9px 12px; border-radius: 8px; font-size: 13px; color: #6b6579; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+  .mega-cat:hover, .mega-cat.active { background: #f3f1f8; color: #1f1c26; }
+  .mega-cat .count { font-size: 11px; color: #9b83e6; }
+  .mega-featured { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .feat-card { border: 1px solid #e8e4ef; border-radius: 10px; overflow: hidden; }
+  .feat-img { background: linear-gradient(135deg, #ece3f7, #fde9e3); height: 70px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .feat-info { padding: 8px 10px; }
+  .feat-name { font-size: 12px; color: #1f1c26; font-weight: 500; }
+  .feat-price { font-family: 'Fraunces', serif; font-style: italic; font-size: 13px; color: #9b83e6; }
+  .mega-title { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #6b6579; margin-bottom: 10px; }
+
+  .preview-box { border: 1px solid #e8e4ef; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+</style>
+
+<h2>Dropdown de Categorias — como prefere?</h2>
+<p class="subtitle">Ao clicar em "Categorias ▾" no header, o que abre?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Dropdown simples com lista de categorias</h3>
+      <p>Lista vertical com nome da categoria e contagem. Simples, rápido de implementar, funciona bem com poucas categorias.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Mega menu — categorias + destaques</h3>
+      <p>Painel maior: categorias à esquerda e produtos em destaque à direita. Visual rico, mais próximo de e-commerce premium.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="preview-box">
+    <div class="mock-lbl">Opção A — Dropdown simples</div>
+    <div class="fake-hdr">
+      <div class="logo">Frésia</div>
+      <div class="nav">
+        <a href="#">Início</a>
+        <a href="#">Loja</a>
+        <a href="#" class="active">Categorias ▾</a>
+        <a href="#">Sobre nós</a>
+        <a href="#">Contato</a>
+      </div>
+      <div style="font-size:13px;color:#6b6579">🔍 👤 🛍</div>
+    </div>
+    <div style="padding:0 0 16px 200px;">
+      <div class="dd-simple">
+        <div class="dd-item active">Todas as categorias <span class="count">24</span></div>
+        <div class="dd-item">Buquês <span class="count">8</span></div>
+        <div class="dd-item">Arranjos <span class="count">6</span></div>
+        <div class="dd-item">Plantas <span class="count">5</span></div>
+        <div class="dd-item">Presentes <span class="count">5</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-box">
+    <div class="mock-lbl">Opção B — Mega menu com destaques</div>
+    <div class="fake-hdr">
+      <div class="logo">Frésia</div>
+      <div class="nav">
+        <a href="#">Início</a>
+        <a href="#">Loja</a>
+        <a href="#" class="active">Categorias ▾</a>
+        <a href="#">Sobre nós</a>
+        <a href="#">Contato</a>
+      </div>
+      <div style="font-size:13px;color:#6b6579">🔍 👤 🛍</div>
+    </div>
+    <div style="padding:0 16px 16px;">
+      <div class="mega">
+        <div class="mega-cats">
+          <div class="mega-title">Categorias</div>
+          <div class="mega-cat active">Todas <span class="count">24</span></div>
+          <div class="mega-cat">Buquês <span class="count">8</span></div>
+          <div class="mega-cat">Arranjos <span class="count">6</span></div>
+          <div class="mega-cat">Plantas <span class="count">5</span></div>
+          <div class="mega-cat">Presentes <span class="count">5</span></div>
+        </div>
+        <div>
+          <div class="mega-title">Destaques</div>
+          <div class="mega-featured">
+            <div class="feat-card"><div class="feat-img">🌸</div><div class="feat-info"><div class="feat-name">Buquê Primavera</div><div class="feat-price">R$ 89</div></div></div>
+            <div class="feat-card"><div class="feat-img">🌺</div><div class="feat-info"><div class="feat-name">Arranjo Tropical</div><div class="feat-price">R$ 120</div></div></div>
+            <div class="feat-card"><div class="feat-img">🎁</div><div class="feat-info"><div class="feat-name">Kit Romântico</div><div class="feat-price">R$ 180</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

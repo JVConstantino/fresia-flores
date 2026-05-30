@@ -1,0 +1,85 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,400;1,600&family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; }
+
+  .mock-wrap { border: 1px solid #e8e4ef; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .mock-lbl { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #6b6579; padding: 8px 14px; background: #f3f1f8; border-bottom: 1px solid #e8e4ef; }
+
+  /* Layout A - centralizado simples */
+  .page-a { background: #f9f8fc; min-height: 320px; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card-a { background: white; border: 1px solid #e8e4ef; border-radius: 16px; padding: 36px; width: 380px; }
+  .brand-a { font-family: 'Fraunces', serif; font-style: italic; font-size: 28px; color: #9b83e6; text-align: center; margin-bottom: 4px; position: relative; }
+  .brand-a::before { content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: #f5a98c; }
+  .subtitle-a { font-size: 13px; color: #6b6579; text-align: center; margin-bottom: 24px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; font-weight: 600; color: #6b6579; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+  .field input { width: 100%; border: 1px solid #e8e4ef; border-radius: 10px; padding: 10px 12px; font-size: 13px; color: #1f1c26; outline: none; }
+  .btn-main { width: 100%; background: #1f1c26; color: white; border: none; border-radius: 999px; padding: 13px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 6px; }
+  .link-row { text-align: center; font-size: 12px; color: #6b6579; margin-top: 14px; }
+  .link-row a { color: #9b83e6; }
+
+  /* Layout B - split (imagem + form) */
+  .page-b { display: grid; grid-template-columns: 1fr 1fr; min-height: 320px; }
+  .page-b-img { background: linear-gradient(160deg, #ece3f7 0%, #fde9e3 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; }
+  .brand-b { font-family: 'Fraunces', serif; font-style: italic; font-size: 36px; color: #9b83e6; margin-bottom: 10px; }
+  .tagline { font-size: 13px; color: #6b6579; text-align: center; line-height: 1.5; }
+  .page-b-form { background: white; padding: 32px; display: flex; flex-direction: column; justify-content: center; }
+  .b-title { font-size: 18px; font-weight: 600; color: #1f1c26; margin-bottom: 6px; }
+  .b-sub { font-size: 12px; color: #6b6579; margin-bottom: 20px; }
+</style>
+
+<h2>Auth — qual layout para Login/Registro?</h2>
+<p class="subtitle">Escolha o estilo das páginas de autenticação.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Card centralizado (simples)</h3>
+      <p>Formulário em card branco centralizado na página. Limpo, focado, clássico.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Split — gradiente + formulário</h3>
+      <p>Lado esquerdo com gradiente lilac/petal e marca, lado direito com formulário. Visual mais premium.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mock-wrap">
+    <div class="mock-lbl">Opção A — Card centralizado</div>
+    <div class="page-a">
+      <div class="card-a">
+        <div class="brand-a">Frésia</div>
+        <div class="subtitle-a">Entre na sua conta</div>
+        <div class="field"><label>Email</label><input placeholder="seu@email.com" /></div>
+        <div class="field"><label>Senha</label><input type="password" placeholder="••••••••" /></div>
+        <button class="btn-main">Entrar</button>
+        <div class="link-row">Não tem conta? <a href="#">Criar conta</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mock-wrap">
+    <div class="mock-lbl">Opção B — Split gradiente + formulário</div>
+    <div class="page-b">
+      <div class="page-b-img">
+        <div class="brand-b">Frésia</div>
+        <div class="tagline">Flores com alma,<br>entregues com carinho.</div>
+        <div style="font-size:40px;margin-top:20px">🌸</div>
+      </div>
+      <div class="page-b-form">
+        <div class="b-title">Bem-vinda de volta</div>
+        <div class="b-sub">Entre na sua conta para continuar</div>
+        <div class="field"><label>Email</label><input placeholder="seu@email.com" /></div>
+        <div class="field"><label>Senha</label><input type="password" placeholder="••••••••" /></div>
+        <button class="btn-main">Entrar</button>
+        <div class="link-row" style="margin-top:12px">Não tem conta? <a href="#">Criar conta</a></div>
+      </div>
+    </div>
+  </div>
+</div>

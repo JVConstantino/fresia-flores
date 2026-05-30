@@ -1,0 +1,187 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,400;1,600&family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; }
+
+  .sheet-wrap { width: 380px; background: white; border: 1px solid #e8e4ef; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .sheet-head { padding: 16px 20px; border-bottom: 1px solid #e8e4ef; display: flex; align-items: center; justify-content: space-between; }
+  .sheet-title { font-weight: 600; font-size: 15px; color: #1f1c26; }
+  .sheet-count { font-size: 12px; color: #6b6579; }
+  .close-btn { width: 28px; height: 28px; border-radius: 50%; background: #f3f1f8; border: none; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #6b6579; }
+
+  /* Item styles */
+  .cart-items { padding: 12px 20px; max-height: 340px; overflow-y: auto; }
+
+  /* Item A - com imagem */
+  .item-a { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f1f8; align-items: flex-start; }
+  .item-img { width: 60px; height: 60px; border-radius: 8px; background: linear-gradient(135deg, #ece3f7, #fde9e3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-cat { font-size: 10px; color: #9b83e6; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+  .item-name { font-size: 13px; color: #1f1c26; font-weight: 500; margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-var { font-size: 11px; color: #6b6579; margin-bottom: 6px; }
+  .item-row { display: flex; align-items: center; justify-content: space-between; }
+  .item-price { font-family: 'Fraunces', serif; font-style: italic; font-size: 15px; color: #1f1c26; }
+  .qty-ctrl { display: flex; align-items: center; gap: 6px; }
+  .qty-btn { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #e8e4ef; background: white; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #1f1c26; }
+  .qty-num { font-size: 13px; color: #1f1c26; font-weight: 500; min-width: 16px; text-align: center; }
+  .rm-btn { font-size: 10px; color: #6b6579; cursor: pointer; background: none; border: none; padding: 0; }
+  .rm-btn:hover { color: #e57373; }
+
+  /* Item B - sem imagem, mais compacto */
+  .item-b { padding: 10px 0; border-bottom: 1px solid #f3f1f8; }
+  .item-b-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .item-b-name { font-size: 13px; color: #1f1c26; font-weight: 500; }
+  .item-b-var { font-size: 11px; color: #6b6579; }
+  .item-b-bot { display: flex; align-items: center; justify-content: space-between; }
+
+  /* Footer */
+  .cart-footer { padding: 16px 20px; border-top: 1px solid #e8e4ef; }
+  .subtotal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .subtotal-lbl { font-size: 13px; color: #6b6579; }
+  .subtotal-val { font-family: 'Fraunces', serif; font-style: italic; font-size: 18px; color: #1f1c26; }
+  .checkout-btn { width: 100%; background: #1f1c26; color: white; border: none; border-radius: 999px; padding: 13px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .checkout-btn:hover { background: #9b83e6; }
+  .keep-btn { width: 100%; background: none; border: none; font-size: 12px; color: #6b6579; cursor: pointer; margin-top: 8px; text-align: center; }
+
+  .label-tag { font-size: 11px; background: #f3f1f8; border-radius: 6px; padding: 4px 10px; color: #6b6579; margin-bottom: 10px; display: inline-block; }
+
+  .side-by-side { display: flex; gap: 24px; align-items: flex-start; }
+</style>
+
+<h2>Carrinho — como exibir os itens?</h2>
+<p class="subtitle">O Sheet lateral já existe. Escolha o estilo dos itens.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Com imagem do produto + controles de quantidade</h3>
+      <p>Thumbnail colorido à esquerda, nome/variante/preço à direita, botões − e + para ajustar quantidade, link remover.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Lista compacta sem imagem</h3>
+      <p>Só texto — nome, variante, quantidade e preço em duas linhas. Mais denso, cabe mais itens visíveis.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="side-by-side">
+    <div>
+      <div class="label-tag">Opção A — com imagem</div>
+      <div class="sheet-wrap">
+        <div class="sheet-head">
+          <div>
+            <div class="sheet-title">Carrinho</div>
+            <div class="sheet-count">2 itens</div>
+          </div>
+          <button class="close-btn">✕</button>
+        </div>
+        <div class="cart-items">
+          <div class="item-a">
+            <div class="item-img">🌸</div>
+            <div class="item-info">
+              <div class="item-cat">Buquês</div>
+              <div class="item-name">Buquê Primavera Rosa</div>
+              <div class="item-var">Médio</div>
+              <div class="item-row">
+                <div class="item-price">R$ 119,00</div>
+                <div class="qty-ctrl">
+                  <button class="qty-btn">−</button>
+                  <span class="qty-num">1</span>
+                  <button class="qty-btn">+</button>
+                </div>
+              </div>
+              <button class="rm-btn">Remover</button>
+            </div>
+          </div>
+          <div class="item-a">
+            <div class="item-img">🎁</div>
+            <div class="item-info">
+              <div class="item-cat">Presentes</div>
+              <div class="item-name">Kit Romântico</div>
+              <div class="item-var">Premium</div>
+              <div class="item-row">
+                <div class="item-price">R$ 265,00</div>
+                <div class="qty-ctrl">
+                  <button class="qty-btn">−</button>
+                  <span class="qty-num">2</span>
+                  <button class="qty-btn">+</button>
+                </div>
+              </div>
+              <button class="rm-btn">Remover</button>
+            </div>
+          </div>
+        </div>
+        <div class="cart-footer">
+          <div class="subtotal-row">
+            <div class="subtotal-lbl">Subtotal</div>
+            <div class="subtotal-val">R$ 649,00</div>
+          </div>
+          <button class="checkout-btn">Finalizar pedido</button>
+          <button class="keep-btn">Continuar comprando</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="label-tag">Opção B — compacto sem imagem</div>
+      <div class="sheet-wrap">
+        <div class="sheet-head">
+          <div>
+            <div class="sheet-title">Carrinho</div>
+            <div class="sheet-count">2 itens</div>
+          </div>
+          <button class="close-btn">✕</button>
+        </div>
+        <div class="cart-items">
+          <div class="item-b">
+            <div class="item-b-top">
+              <div>
+                <div class="item-b-name">Buquê Primavera Rosa</div>
+                <div class="item-b-var">Médio</div>
+              </div>
+              <button class="rm-btn" style="font-size:14px">✕</button>
+            </div>
+            <div class="item-b-bot">
+              <div class="qty-ctrl">
+                <button class="qty-btn">−</button>
+                <span class="qty-num">1</span>
+                <button class="qty-btn">+</button>
+              </div>
+              <div class="item-price">R$ 119,00</div>
+            </div>
+          </div>
+          <div class="item-b">
+            <div class="item-b-top">
+              <div>
+                <div class="item-b-name">Kit Romântico</div>
+                <div class="item-b-var">Premium</div>
+              </div>
+              <button class="rm-btn" style="font-size:14px">✕</button>
+            </div>
+            <div class="item-b-bot">
+              <div class="qty-ctrl">
+                <button class="qty-btn">−</button>
+                <span class="qty-num">2</span>
+                <button class="qty-btn">+</button>
+              </div>
+              <div class="item-price">R$ 530,00</div>
+            </div>
+          </div>
+        </div>
+        <div class="cart-footer">
+          <div class="subtotal-row">
+            <div class="subtotal-lbl">Subtotal</div>
+            <div class="subtotal-val">R$ 649,00</div>
+          </div>
+          <button class="checkout-btn">Finalizar pedido</button>
+          <button class="keep-btn">Continuar comprando</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

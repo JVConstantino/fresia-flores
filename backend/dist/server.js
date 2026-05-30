@@ -57,6 +57,13 @@ app.use((0, cors_1.default)({
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.static('public'));
+app.get('/', (_req, res) => {
+    res.status(200).json({
+        service: 'fresia-backend',
+        status: 'ok',
+        ts: Date.now(),
+    });
+});
 app.get('/api/v1/health', (_req, res) => res.json({ status: 'ok', ts: Date.now() }));
 // Rotas públicas
 app.use('/api/v1/categories', categories_1.default);

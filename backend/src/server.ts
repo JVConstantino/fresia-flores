@@ -53,6 +53,14 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(express.static('public'))
 
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    service: 'fresia-backend',
+    status: 'ok',
+    ts: Date.now(),
+  })
+})
+
 app.get('/api/v1/health', (_req, res) => res.json({ status: 'ok', ts: Date.now() }))
 
 // Rotas públicas

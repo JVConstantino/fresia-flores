@@ -1,4 +1,7 @@
-import { Navigate, useLocation } from 'react-router-dom'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 
 interface PrivateRouteProps {
@@ -7,7 +10,14 @@ interface PrivateRouteProps {
 
 export function PrivateRoute({ children }: PrivateRouteProps) {
   const { user, isLoading } = useAuthStore()
-  const location = useLocation()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`)
+    }
+  }, [user, isLoading, router, pathname])
 
   if (isLoading) {
     return (
@@ -18,7 +28,7 @@ export function PrivateRoute({ children }: PrivateRouteProps) {
   }
 
   if (!user) {
-    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />
+    return null
   }
 
   return <>{children}</>

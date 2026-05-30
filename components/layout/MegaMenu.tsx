@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ChevronDown } from 'lucide-react'
 import { categoryService, type Category } from '@/services/categoryService'
 import { productService, type ProductFeatured } from '@/services/productService'
@@ -28,7 +29,7 @@ function getFirstImage(images: any): string | null {
 }
 
 export function MegaMenu() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [hoveredCategoryId, setHoveredCategoryId] = useState<number | null>(null)
@@ -115,7 +116,7 @@ export function MegaMenu() {
               Categorias
             </div>
             <button
-              onClick={() => { navigate('/loja'); setIsOpen(false) }}
+              onClick={() => { router.push('/loja'); setIsOpen(false) }}
               className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm text-ink-600 hover:bg-ink-50 hover:text-ink-800 transition-colors"
             >
               Todas as categorias
@@ -127,7 +128,7 @@ export function MegaMenu() {
               <button
                 key={cat.id}
                 onMouseEnter={() => setHoveredCategoryId(cat.id)}
-                onClick={() => { navigate(`/loja?categoria=${cat.slug}`); setIsOpen(false) }}
+                onClick={() => { router.push(`/loja?categoria=${cat.slug}`); setIsOpen(false) }}
                 className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-colors ${
                   hoveredCategoryId === cat.id
                     ? 'bg-lilac-50 text-lilac-700 font-medium'
@@ -170,7 +171,7 @@ export function MegaMenu() {
                       {/* Botão ver produto no hover */}
                       <div className="absolute inset-0 flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/10">
                         <Link
-                          to={`/produto/${product.slug}`}
+                          href={`/loja/${product.slug}`}
                           onClick={() => setIsOpen(false)}
                           className="bg-white text-ink-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md hover:bg-lilac-500 hover:text-white transition-colors"
                         >

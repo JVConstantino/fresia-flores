@@ -111,6 +111,7 @@ export default function ProductPage() {
       productId: product.id,
       variantId: selectedVariantId,
       productName: product.name,
+      productSlug: product.slug,
       variantName: selectedVariant?.name,
       price: Number(displayPrice),
       productImages: unifiedImages[0]?.src,
@@ -152,7 +153,7 @@ export default function ProductPage() {
         {/* Galeria */}
         <div>
           <GalleryUnified
-            images={unifiedImages.map(img => img.src)}
+            images={unifiedImages}
             activeIndex={galleryActiveIndex}
             onIndexChange={setGalleryActiveIndex}
           />

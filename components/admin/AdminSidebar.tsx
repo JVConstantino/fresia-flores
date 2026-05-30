@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Search, ChevronRight, Home, Package, Truck, ShoppingBag, Tag, Lightbulb, Ticket, Mail, MessageSquare, Webhook, Users, Boxes, ClipboardList, Layout, Image as ImageIcon, FileText, ScrollText, Monitor, BarChart3 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
@@ -61,8 +62,8 @@ interface AdminSidebarProps {
 }
 
 export function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
-  const location = useLocation()
-  const navigate = useNavigate()
+  const pathname = usePathname()
+  const router = useRouter()
   const { user } = useAuthStore()
   const navRef = useRef<HTMLElement | null>(null)
   const [query, setQuery] = useState('')
@@ -83,8 +84,8 @@ export function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
   }, [])
 
   const isActive = (path: string) => {
-    if (path === '/admin') return location.pathname === '/admin'
-    return location.pathname.startsWith(path)
+    if (path === '/admin') return pathname === '/admin'
+    return pathname.startsWith(path)
   }
 
   const filteredNav = useMemo(() => {
@@ -108,7 +109,7 @@ export function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
           <span className="text-sm font-semibold text-ink-900">Frésia</span>
         </div>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => router.push('/')}
           className="w-7 h-7 rounded-md bg-ink-100 text-ink-600 hover:bg-ink-200 flex items-center justify-center"
           title="Voltar à loja"
         >
@@ -141,7 +142,7 @@ export function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
                 return (
                   <li key={item.path}>
                     <button
-                      onClick={() => { navigate(item.path); onNavigate?.() }}
+                      onClick={() => { router.push(item.path); onNavigate?.() }}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all ${
                         isActive(item.path)
                           ? 'bg-lilac-500 text-white'

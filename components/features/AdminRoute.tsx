@@ -1,4 +1,7 @@
-import { Navigate } from 'react-router-dom'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 
 interface AdminRouteProps {
@@ -7,6 +10,13 @@ interface AdminRouteProps {
 
 export function AdminRoute({ children }: AdminRouteProps) {
   const { user, isLoading } = useAuthStore()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading && (!user || !user.isAdmin)) {
+      router.push('/auth/login?redirect=%2Fadmin')
+    }
+  }, [user, isLoading, router])
 
   if (isLoading) {
     return (
@@ -17,7 +27,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }
 
   if (!user || !user.isAdmin) {
-    return <Navigate to="/login?redirect=%2Fadmin" replace />
+    return null
   }
 
   return <>{children}</>

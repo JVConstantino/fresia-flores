@@ -1,6 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+
+declare global {
+  interface Window {
+    MercadoPago?: any
+  }
+}
 import Cards from 'react-credit-cards-2'
 import 'react-credit-cards-2/dist/lib/styles-compiled.css'
 import { Input } from '@/components/ui/input'

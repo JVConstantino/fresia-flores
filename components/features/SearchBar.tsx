@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { Search, X, ChevronDown } from 'lucide-react'
 import { categoryService, type Category } from '@/services/categoryService'
 
@@ -11,7 +11,7 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ open, onClose }: SearchBarProps) {
-  const navigate = useNavigate()
+  const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState('')
@@ -62,7 +62,7 @@ export function SearchBar({ open, onClose }: SearchBarProps) {
     if (priceMin) params.set('preco_min', priceMin)
     if (priceMax) params.set('preco_max', priceMax)
     if (hasPromotion) params.set('promocao', '1')
-    navigate(`/loja?${params.toString()}`)
+    router.push(`/loja?${params.toString()}`)
     onClose()
   }
 

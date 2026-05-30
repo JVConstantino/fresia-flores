@@ -100,7 +100,6 @@ export default function HomePage() {
     const initMap = async () => {
       try {
         const maplibregl = (await import('maplibre-gl')).default
-        await import('maplibre-gl/dist/maplibre-gl.css')
         map = new maplibregl.Map({
           container: mapRef.current!,
           style: 'https://tiles.openfreemap.org/styles/liberty',

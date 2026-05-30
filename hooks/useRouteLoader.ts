@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { usePathname } from 'next/navigation'
 import { useLoaderStore } from '@/store/loaderStore'
 
 /**
@@ -7,7 +7,7 @@ import { useLoaderStore } from '@/store/loaderStore'
  * Delay mínimo de 400ms para evitar flash em rotas instantâneas.
  */
 export function useRouteLoader() {
-  const location = useLocation()
+  const pathname = usePathname()
   const { show, hide } = useLoaderStore()
   const firstRender = useRef(true)
 
@@ -24,5 +24,5 @@ export function useRouteLoader() {
       clearTimeout(timer)
       hide()
     }
-  }, [location.pathname])
+  }, [pathname])
 }

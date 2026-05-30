@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { Heart, Eye, ShoppingBag } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -72,7 +72,7 @@ export function ProductCard({
 
         {/* Overlay de hover — botões na parte inferior da imagem */}
         <div className={`absolute inset-x-0 bottom-0 flex flex-col gap-2 p-3 bg-gradient-to-t from-black/60 to-transparent transition-opacity duration-200 ${showHover ? 'opacity-100' : 'opacity-0'}`}>
-          <Link to={`/produto/${slug}`} className="w-full">
+          <Link href={`/loja/${slug}`} className="w-full">
             <Button size="sm" className="w-full bg-white hover:bg-ink-50 text-ink-800 gap-1.5 text-xs h-8">
               <Eye size={13} /> Ver Produto
             </Button>

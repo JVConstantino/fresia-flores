@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 
 interface CategoryCardProps {
   id: number
@@ -17,7 +17,7 @@ export function CategoryCard({
   productCount
 }: CategoryCardProps) {
   return (
-    <Link to={`/loja?category=${id}`}>
+    <Link href={`/loja?category=${id}`}>
       <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow h-full">
         <div className="w-full h-40 bg-lilac-100 flex items-center justify-center text-4xl">
           {image ? (

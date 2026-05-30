@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { X, ChevronDown, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ interface SearchModalProps {
 }
 
 export function SearchModal({ open, onClose }: SearchModalProps) {
-  const navigate = useNavigate()
+  const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [categories, setCategories] = useState<Category[]>([])
@@ -53,7 +53,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
     if (priceMax) params.append('preco_max', priceMax)
     if (hasPromotion) params.append('promocao', '1')
     if (isFeatured) params.append('destaque', '1')
-    navigate(`/loja?${params.toString()}`)
+    router.push(`/loja?${params.toString()}`)
     onClose()
   }
 

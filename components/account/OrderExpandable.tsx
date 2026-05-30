@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 
 export interface OrderItem {
   id?: number
@@ -98,7 +98,7 @@ export function OrderExpandable({
             </>
           )}
           <Link
-            to={`/pedido/${id}/detalhes`}
+            href={`/conta/pedidos/${id}`}
             className="flex items-center justify-center gap-2 mt-3 w-full py-2 bg-lilac-500 hover:bg-lilac-600 text-white text-sm font-semibold rounded-lg transition-colors"
           >
             Ver detalhes do pedido

@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body text-ink-800 bg-ink-50;
+  }
+}
+
+/* Overlay claro para dialogs/sheets — Tom Frésia */
+[data-radix-dialog-overlay] {
+  background-color: rgba(31, 28, 38, 0.25) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}

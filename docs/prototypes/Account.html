@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Minha Conta — Frésia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  .acc-head { padding: 32px 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .acc-title h1 { font-size: clamp(36px, 4vw, 48px); }
+  .acc-title h1 em { color: var(--lilac-600); font-style: italic; font-weight: 400; }
+  .acc-title p { color: var(--ink-500); font-size: 14px; margin-top: 6px; }
+  .acc-user { display: flex; align-items: center; gap: 14px; background: white; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 8px 20px 8px 8px; }
+  .acc-user .av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--lilac-400), var(--petal-400)); }
+  .acc-user .name { font-size: 14px; font-weight: 500; color: var(--ink-900); }
+  .acc-user .em { font-size: 12px; color: var(--ink-500); }
+
+  .acc-layout { display: grid; grid-template-columns: 260px 1fr; gap: 32px; align-items: start; }
+
+  .side {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    position: sticky; top: 88px;
+  }
+  .side-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    color: var(--ink-700);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .side-item:hover { background: var(--ink-50); color: var(--ink-900); }
+  .side-item.active { background: var(--lilac-50); color: var(--lilac-700); font-weight: 500; }
+  .side-item.active .dot { background: var(--lilac-500); }
+  .side-item .dot { width: 6px; height: 6px; border-radius: 50%; background: transparent; margin-left: auto; }
+  .side-item .ic { width: 18px; height: 18px; color: inherit; stroke: currentColor; fill: none; stroke-width: 1.5; }
+  .side-divider { height: 1px; background: var(--border); margin: 8px 0; }
+  .side-bottom { margin-top: 14px; padding: 14px; background: var(--ink-50); border-radius: var(--radius-md); }
+  .side-bottom .sb-t { font-size: 12px; font-weight: 600; color: var(--ink-900); margin-bottom: 2px; }
+  .side-bottom .sb-s { font-size: 12px; color: var(--ink-500); }
+
+  .main-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .mt { padding: 14px 0; font-size: 14px; color: var(--ink-500); border-bottom: 2px solid transparent; cursor: pointer; }
+  .mt.active { color: var(--ink-900); border-color: var(--ink-900); font-weight: 500; }
+  .mt .count { background: var(--lilac-100); color: var(--lilac-700); padding: 2px 8px; border-radius: 999px; font-size: 11px; margin-left: 6px; font-weight: 600; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+  .stat .l { font-size: 12px; color: var(--ink-500); margin-bottom: 8px; }
+  .stat .v { font-family: var(--font-display); font-size: 28px; font-weight: 500; color: var(--ink-900); line-height: 1; }
+  .stat .s { font-size: 12px; color: var(--leaf-600); margin-top: 6px; display: inline-flex; gap: 4px; align-items: center; }
+  .stat.lilac { background: linear-gradient(135deg, var(--lilac-50), white); border-color: var(--lilac-200); }
+
+  .order { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; overflow: hidden; }
+  .order-head { padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .order-id { display: flex; align-items: baseline; gap: 12px; }
+  .order-id .num { font-family: var(--font-display); font-size: 22px; font-weight: 500; color: var(--ink-900); }
+  .order-id .meta { font-size: 12px; color: var(--ink-500); }
+  .order-status-group { display: flex; gap: 10px; align-items: center; }
+  .stat-pill { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; display: inline-flex; gap: 6px; align-items: center; }
+  .stat-ship { background: var(--lilac-100); color: var(--lilac-700); }
+  .stat-way { background: var(--petal-100); color: var(--petal-600); }
+  .stat-del { background: var(--leaf-100); color: var(--leaf-600); }
+  .order-invoice { font-size: 13px; color: var(--ink-700); display: inline-flex; gap: 6px; align-items: center; padding: 8px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); }
+  .order-invoice:hover { border-color: var(--ink-900); }
+
+  .order-body { padding: 20px 24px; }
+  .order-meta { display: flex; flex-wrap: wrap; gap: 28px; font-size: 13px; margin-bottom: 18px; }
+  .order-meta .k { color: var(--ink-500); margin-right: 6px; }
+  .order-meta .v { color: var(--ink-900); }
+  .order-meta .v.total { font-family: var(--font-display); font-size: 18px; font-weight: 500; }
+
+  .order-items { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .oi { display: flex; gap: 14px; padding: 14px; background: var(--ink-50); border-radius: var(--radius-md); }
+  .oi-img { width: 64px; height: 64px; border-radius: var(--radius-sm); overflow: hidden; flex-shrink: 0; background: white; }
+  .oi-img img { width: 100%; height: 100%; object-fit: cover; }
+  .oi-name { font-size: 13px; font-weight: 500; color: var(--ink-900); margin-bottom: 4px; }
+  .oi-det { font-size: 12px; color: var(--ink-500); line-height: 1.6; }
+
+  .order-foot { padding: 14px 24px; background: var(--ink-50); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+  .of-btn { padding: 8px 14px; font-size: 12px; font-weight: 500; border-radius: var(--radius-md); color: var(--ink-700); border: 1px solid transparent; }
+  .of-btn:hover { background: white; border-color: var(--border); }
+  .of-btn.primary { background: var(--ink-900); color: white; }
+  .of-btn.primary:hover { background: var(--ink-800); border-color: transparent; }
+
+  @media (max-width: 900px) {
+    .acc-layout { grid-template-columns: 1fr; }
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .order-items { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="assets/shared.js"></script>
+<script type="text/babel">
+  const { useState } = React;
+
+  const side = [
+    { k: 'orders', l: 'Meus pedidos', ic: <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/>, active: true, badge: 12 },
+    { k: 'fav',    l: 'Favoritos',    ic: <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/> },
+    { k: 'sub',    l: 'Assinatura',   ic: <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0zM12 7v5l3 3"/> },
+    { k: 'addr',   l: 'Endereços',    ic: <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/> },
+    { k: 'pay',    l: 'Formas de pagamento', ic: <path d="M3 6h18v12H3zM3 10h18"/> },
+    { k: 'data',   l: 'Dados pessoais', ic: <path d="M12 2a4 4 0 0 1 0 8 4 4 0 0 1 0-8zM4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/> },
+    { k: 'sec',    l: 'Senha & segurança', ic: <path d="M3 11h18v11H3zM7 11V7a5 5 0 0 1 10 0v4"/> },
+  ];
+
+  const orders = [
+    {
+      id: '#FR-74221',
+      status: 'way', statusL: 'A caminho',
+      date: '14:32 · 18 Abr 2026',
+      deliver: 'Sex, 19 Abr · 15h–17h',
+      to: 'R. Harmonia, 458 · Pinheiros · SP',
+      total: 998.00,
+      items: [
+        { n: 'Buquê Primavera em Pêssego', q: 1, p: 329, c: 'Médio · Pêssego', img: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=200&q=80' },
+        { n: 'Peônias Blush', q: 1, p: 420, c: 'Pequeno · Blush', img: 'https://images.unsplash.com/photo-1533616688419-b7a585564566?w=200&q=80' },
+        { n: 'Orquídea Phalaenopsis', q: 1, p: 249, c: 'Branco', img: 'https://images.unsplash.com/photo-1558005137-d9619a5c539f?w=200&q=80' },
+      ],
+    },
+    {
+      id: '#FR-73907',
+      status: 'del', statusL: 'Entregue',
+      date: '11:10 · 02 Abr 2026',
+      deliver: 'Qui, 03 Abr',
+      to: 'R. Harmonia, 458 · Pinheiros · SP',
+      total: 548.00,
+      items: [
+        { n: 'Nuvem Lavanda', q: 1, p: 289, c: 'Médio · Lilás', img: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=200&q=80' },
+        { n: 'Frésia Coleção', q: 1, p: 219, c: 'Branco', img: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=200&q=80' },
+      ],
+    },
+    {
+      id: '#FR-72344',
+      status: 'ship', statusL: 'Preparando',
+      date: '09:22 · 18 Abr 2026',
+      deliver: 'Sáb, 20 Abr',
+      to: 'Av. Paulista, 1234 · Bela Vista · SP',
+      total: 345.00,
+      items: [
+        { n: 'Jardim Secreto', q: 1, p: 345, c: 'Grande · Mix silvestre', img: 'https://images.unsplash.com/photo-1469259943454-aa100abba749?w=200&q=80' },
+      ],
+    },
+  ];
+
+  const statusClass = (s) => s === 'way' ? 'stat-way' : s === 'del' ? 'stat-del' : 'stat-ship';
+
+  const App = () => {
+    const [tab, setTab] = useState('current');
+
+    return (
+      <div className="page-wrap">
+        <FresiaHeader cartCount={3} activePage="account" />
+        <main>
+          <div className="container">
+            <div className="breadcrumb">
+              <a href="Home.html">Início</a>
+              <span className="sep">/</span>
+              <span className="current">Minha conta</span>
+            </div>
+
+            <div className="acc-head">
+              <div className="acc-title">
+                <h1>Olá, <em>Beatriz</em> ✿</h1>
+                <p>Você é cliente Frésia há 2 anos e 4 meses.</p>
+              </div>
+              <div className="acc-user">
+                <div className="av"></div>
+                <div>
+                  <div className="name">Beatriz Ferreira</div>
+                  <div className="em">beatriz@email.com</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="acc-layout">
+              <aside className="side">
+                {side.map(s => (
+                  <div key={s.k} className={`side-item ${s.active ? 'active' : ''}`}>
+                    <svg className="ic" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">{s.ic}</svg>
+                    <span>{s.l}</span>
+                    {s.badge && <span style={{marginLeft: 'auto', background: 'var(--lilac-500)', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 600}}>{s.badge}</span>}
+                    {s.active && !s.badge && <span className="dot"></span>}
+                  </div>
+                ))}
+                <div className="side-divider"></div>
+                <div className="side-item">
+                  <svg className="ic" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  Suporte
+                </div>
+                <div className="side-item" style={{color: 'var(--petal-600)'}}>
+                  <svg className="ic" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                  Sair
+                </div>
+
+                <div className="side-bottom">
+                  <div className="sb-t">Precisa de ajuda?</div>
+                  <div className="sb-s">Respondemos em até 1h nos dias úteis.</div>
+                </div>
+              </aside>
+
+              <section>
+                <div className="stat-row">
+                  <div className="stat lilac">
+                    <div className="l">Pedidos ativos</div>
+                    <div className="v">2</div>
+                    <div className="s">Próxima entrega em 18h</div>
+                  </div>
+                  <div className="stat">
+                    <div className="l">Total de pedidos</div>
+                    <div className="v">12</div>
+                    <div className="s">Desde Dez 2023</div>
+                  </div>
+                  <div className="stat">
+                    <div className="l">Flores favoritas</div>
+                    <div className="v">Peônias</div>
+                    <div className="s" style={{color: 'var(--petal-600)'}}>4 pedidos este ano</div>
+                  </div>
+                  <div className="stat">
+                    <div className="l">Clube Frésia</div>
+                    <div className="v">Ouro</div>
+                    <div className="s">15% off em todos pedidos</div>
+                  </div>
+                </div>
+
+                <div className="main-tabs">
+                  <div className={`mt ${tab === 'current' ? 'active' : ''}`} onClick={() => setTab('current')}>Em aberto <span className="count">2</span></div>
+                  <div className={`mt ${tab === 'all' ? 'active' : ''}`} onClick={() => setTab('all')}>Todos os pedidos <span className="count">12</span></div>
+                  <div className={`mt ${tab === 'archive' ? 'active' : ''}`} onClick={() => setTab('archive')}>Arquivados</div>
+                </div>
+
+                {orders.map((o, i) => (
+                  <div key={i} className="order">
+                    <div className="order-head">
+                      <div className="order-id">
+                        <div className="num">{o.id}</div>
+                        <div className="meta">{o.items.length} itens · {o.date}</div>
+                      </div>
+                      <div className="order-status-group">
+                        <span className={`stat-pill ${statusClass(o.status)}`}>
+                          <span style={{width: 6, height: 6, borderRadius: '50%', background: 'currentColor'}}></span>
+                          {o.statusL}
+                        </span>
+                        <button className="order-invoice">
+                          <svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                          Nota fiscal
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="order-body">
+                      <div className="order-meta">
+                        <div><span className="k">Entrega:</span><span className="v">{o.deliver}</span></div>
+                        <div><span className="k">Endereço:</span><span className="v">{o.to}</span></div>
+                        <div><span className="k">Total:</span><span className="v total">R$ {o.total.toFixed(2).replace('.', ',')}</span></div>
+                      </div>
+                      <div className="order-items">
+                        {o.items.map((it, j) => (
+                          <div key={j} className="oi">
+                            <div className="oi-img"><img src={it.img} alt={it.n} /></div>
+                            <div>
+                              <div className="oi-name">{it.n}</div>
+                              <div className="oi-det">Qtd: {it.q} · {it.c}<br/>R$ {it.p.toFixed(2).replace('.', ',')}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="order-foot">
+                      <button className="of-btn">Pedir novamente</button>
+                      <button className="of-btn">Ver detalhes</button>
+                      {o.status !== 'del' ? (
+                        <a href="Tracking.html" className="of-btn primary"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M12 13c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3z"/><path d="M19 10c0 7-7 13-7 13s-7-6-7-13a7 7 0 0 1 14 0z"/></svg>Rastrear</a>
+                      ) : (
+                        <button className="of-btn primary">Avaliar</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </section>
+            </div>
+          </div>
+        </main>
+        <FresiaFooter />
+      </div>
+    );
+  };
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

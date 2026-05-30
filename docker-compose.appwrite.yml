@@ -1,0 +1,65 @@
+services:
+  appwrite:
+    image: appwrite/appwrite:1.7
+    container_name: appwrite
+    restart: unless-stopped
+    ports:
+      - "6900:6900"
+    environment:
+      - _APP_ENV=development
+      - _APP_WORKER_PER_CORE=4
+      - _APP_OPENSSL_KEY_V1=your-secret-key-change-in-production
+      - _APP_DOMAIN=localhost
+      - _APP_DOMAIN_TARGET=localhost
+      - _APP_CONSOLE_WHITELIST_ROOT=disabled
+      - _APP_CONSOLE_WHITELIST_EMAILS=
+      - _APP_CONSOLE_WHITELIST_IPS=
+      - _APP_SYSTEM_EMAIL=admin@fresia.com
+      - _APP_SYSTEM_PASSWORD=Fr3s1a@2026!Admin
+      - _APP_STORAGE_LIMIT=100000000
+      - _APP_FUNCTIONS_SIZE_LIMIT=10000000
+      - _APP_SMTP_HOST=
+      - _APP_SMTP_PORT=
+    volumes:
+      - appwrite_uploads:/storage/uploads
+      - appwrite_cache:/storage/cache
+      - appwrite_config:/storage/config
+      - appwrite_certificates:/storage/certificates
+      - appwrite_functions:/storage/functions
+    networks:
+      - appwrite_network
+
+  mariadb:
+    image: mariadb:10.11
+    container_name: appwrite-mariadb
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=fresia_appwrite_root
+      - MYSQL_DATABASE=appwrite
+      - MYSQL_USER=appwrite
+      - MYSQL_PASSWORD=fresia_appwrite_pass
+    volumes:
+      - appwrite_mariadb:/var/lib/mysql
+    networks:
+      - appwrite_network
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: appwrite-redis
+    restart: unless-stopped
+    volumes:
+      - appwrite_redis:/data
+    networks:
+      - appwrite_network
+
+volumes:
+  appwrite_uploads:
+  appwrite_cache:
+  appwrite_config:
+  appwrite_certificates:
+  appwrite_functions:
+  appwrite_mariadb:
+  appwrite_redis:
+
+networks:
+  appwrite_network:

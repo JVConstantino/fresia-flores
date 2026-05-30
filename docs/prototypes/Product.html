@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Buquê Primavera em Pêssego — Frésia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  .product-page { padding-bottom: 80px; }
+  .product-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 72px;
+    align-items: start;
+  }
+  .gallery {
+    display: grid;
+    grid-template-columns: 88px 1fr;
+    gap: 20px;
+  }
+  .thumbs { display: flex; flex-direction: column; gap: 12px; }
+  .thumb {
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: var(--ink-100);
+    transition: border-color 0.15s;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb.active { border-color: var(--ink-900); box-shadow: 0 0 0 2px var(--ink-900); }
+  .hero-img {
+    aspect-ratio: 4/5;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: var(--petal-50);
+    position: relative;
+  }
+  .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-badge {
+    position: absolute; top: 24px; left: 24px;
+  }
+  .fav-btn {
+    position: absolute;
+    top: 20px; right: 20px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(6px);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--ink-700);
+  }
+  .fav-btn:hover { color: var(--petal-500); }
+
+  /* Info column */
+  .info { padding-top: 8px; }
+  .brand-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .brand-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px 6px 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    color: var(--ink-700);
+  }
+  .brand-chip .dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--lilac-400), var(--petal-400));
+  }
+  .sku { font-size: 12px; color: var(--ink-400); letter-spacing: 0.06em; }
+
+  .title { font-size: 40px; line-height: 1.1; margin-bottom: 14px; }
+  .title em { color: var(--lilac-600); font-weight: 400; }
+  .rating-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .stars { display: inline-flex; gap: 2px; color: var(--petal-500); }
+  .rating-count { font-size: 13px; color: var(--ink-500); }
+  .price { font-family: var(--font-display); font-size: 44px; font-weight: 500; color: var(--ink-900); line-height: 1; }
+  .price-row { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+  .price-old { font-size: 18px; color: var(--ink-400); text-decoration: line-through; }
+  .price-note { font-size: 13px; color: var(--ink-500); margin-bottom: 32px; }
+
+  .opt-row { margin-bottom: 24px; }
+  .opt-label {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 13px; color: var(--ink-500);
+    margin-bottom: 12px;
+  }
+  .opt-label strong { color: var(--ink-900); font-weight: 500; }
+  .opt-label .sep { width: 3px; height: 3px; border-radius: 50%; background: var(--ink-300); display: inline-block; transform: translateY(-3px); }
+  .swatches { display: flex; gap: 10px; }
+  .swatch {
+    width: 52px; height: 52px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .swatch img { width: 100%; height: 100%; object-fit: cover; }
+  .swatch.active { box-shadow: 0 0 0 2px var(--ink-900); border-color: var(--ink-900); }
+  .swatch:hover { transform: translateY(-1px); }
+
+  .sizes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .size-chip {
+    min-width: 64px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    background: white;
+    color: var(--ink-800);
+    transition: all 0.15s;
+  }
+  .size-chip:hover { border-color: var(--ink-400); }
+  .size-chip.active { background: var(--ink-900); color: white; border-color: var(--ink-900); }
+  .size-chip.disabled { color: var(--ink-300); cursor: not-allowed; text-decoration: line-through; }
+  .size-link { color: var(--petal-500); font-size: 13px; margin-top: 10px; display: inline-block; }
+
+  .cta-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .btn-cart {
+    padding: 18px 28px;
+    background: var(--ink-900); color: white;
+    border-radius: var(--radius-pill);
+    font-size: 15px; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.2s;
+  }
+  .btn-cart:hover { background: var(--ink-800); box-shadow: 0 12px 24px rgba(20, 18, 24, 0.2); }
+  .btn-fav-lg {
+    width: 60px; height: 60px;
+    border-radius: var(--radius-pill);
+    background: var(--ink-100);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--ink-700);
+  }
+  .btn-fav-lg:hover { background: var(--petal-100); color: var(--petal-600); }
+
+  .shipping-note {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--ink-600);
+  }
+  .shipping-note .icon { color: var(--leaf-500); }
+
+  /* Tabs */
+  .tabs {
+    margin-top: 48px;
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+  }
+  .tab-heads { display: flex; gap: 28px; margin-bottom: 20px; }
+  .tab-head {
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--ink-500);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+  }
+  .tab-head.active { color: var(--ink-900); border-color: var(--ink-900); font-weight: 500; }
+  .tab-body { font-size: 14px; line-height: 1.7; color: var(--ink-600); }
+  .tab-body p { margin-bottom: 12px; }
+  .feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px; }
+  .feat { display: flex; gap: 12px; font-size: 13px; }
+  .feat .fi { width: 36px; height: 36px; border-radius: 50%; background: var(--lilac-50); color: var(--lilac-600); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .feat strong { color: var(--ink-900); display: block; margin-bottom: 2px; }
+
+  /* Related products */
+  .related { margin-top: 96px; }
+  .related-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; }
+  .related-head h2 { font-size: 32px; }
+  .related-head h2 em { color: var(--lilac-600); font-style: italic; font-weight: 400; }
+  .related-head a { font-size: 13px; color: var(--ink-600); border-bottom: 1px solid var(--ink-300); padding-bottom: 2px; }
+  .related-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .p-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .p-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .p-card-img {
+    aspect-ratio: 1;
+    background: var(--ink-100);
+    position: relative;
+    overflow: hidden;
+  }
+  .p-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .p-card:hover .p-card-img img { transform: scale(1.05); }
+  .p-card-body { padding: 18px; }
+  .p-card-name { font-size: 15px; color: var(--ink-900); margin-bottom: 6px; font-weight: 500; }
+  .p-card-cat { font-size: 12px; color: var(--ink-500); margin-bottom: 12px; }
+  .p-card-foot { display: flex; align-items: center; justify-content: space-between; }
+  .p-card-price { font-family: var(--font-display); font-size: 20px; font-weight: 500; color: var(--ink-900); }
+  .p-card-add {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--ink-900); color: white;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .p-card-add:hover { background: var(--lilac-500); }
+  .p-card-fav {
+    position: absolute; top: 14px; right: 14px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--ink-700);
+  }
+
+  @media (max-width: 900px) {
+    .product-grid { grid-template-columns: 1fr; gap: 40px; }
+    .related-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="assets/shared.js"></script>
+<script type="text/babel">
+  const { useState } = React;
+
+  const images = [
+    'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=900&q=80',
+    'https://images.unsplash.com/photo-1508610048659-a06b669e3321?w=900&q=80',
+    'https://images.unsplash.com/photo-1455659817273-f96807779a8a?w=900&q=80',
+    'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=900&q=80',
+    'https://images.unsplash.com/photo-1520763185298-1b434c919102?w=900&q=80',
+  ];
+
+  const variants = [
+    { name: 'Pêssego', img: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=200&q=80' },
+    { name: 'Lilás',   img: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=200&q=80' },
+    { name: 'Branco',  img: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?w=200&q=80' },
+    { name: 'Rosado',  img: 'https://images.unsplash.com/photo-1469259943454-aa100abba749?w=200&q=80' },
+  ];
+
+  const sizes = ['Mini', 'Pequeno', 'Médio', 'Grande', 'Luxo'];
+
+  const related = [
+    { name: 'Buquê Nuvem Lavanda',    cat: 'Lilás & lavanda',   price: 'R$ 289', img: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=600&q=80', badge: null },
+    { name: 'Arranjo Jardim Secreto', cat: 'Mix silvestre',     price: 'R$ 345', img: 'https://images.unsplash.com/photo-1469259943454-aa100abba749?w=600&q=80', badge: 'Novo' },
+    { name: 'Peônias Blush',          cat: 'Peônias',           price: 'R$ 420', img: 'https://images.unsplash.com/photo-1533616688419-b7a585564566?w=600&q=80', badge: null },
+    { name: 'Campo de Margaridas',    cat: 'Flores do campo',   price: 'R$ 198', img: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=600&q=80', badge: 'Bestseller' },
+  ];
+
+  const App = () => {
+    const [active, setActive] = useState(0);
+    const [variant, setVariant] = useState(0);
+    const [size, setSize] = useState(2);
+    const [tab, setTab] = useState('desc');
+
+    return (
+      <div className="page-wrap">
+        <FresiaHeader cartCount={3} activePage="shop" />
+        <main>
+          <div className="container">
+            <div className="breadcrumb">
+              <a href="Home.html">Início</a>
+              <span className="sep">/</span>
+              <a href="Store.html">Loja</a>
+              <span className="sep">/</span>
+              <a href="Store.html">Buquês</a>
+              <span className="sep">/</span>
+              <span className="current">Primavera em Pêssego</span>
+            </div>
+
+            <div className="product-page">
+              <div className="product-grid">
+                <div className="gallery">
+                  <div className="thumbs">
+                    {images.map((src, i) => (
+                      <div key={i} className={`thumb ${active === i ? 'active' : ''}`} onClick={() => setActive(i)}>
+                        <img src={src} alt="" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="hero-img">
+                    <span className="badge badge-petal hero-badge">Limitado</span>
+                    <button className="fav-btn" title="Favoritar">
+                      <svg className="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </button>
+                    <img src={images[active]} alt="Buquê" />
+                  </div>
+                </div>
+
+                <div className="info">
+                  <div className="brand-row">
+                    <div className="brand-chip">
+                      <span className="dot"></span>
+                      <span>Coleção Frésia · Primavera '26</span>
+                    </div>
+                    <span className="sku">SKU · FR-BUQ-228</span>
+                  </div>
+
+                  <h1 className="title">Buquê <em>Primavera</em><br/>em Pêssego</h1>
+
+                  <div className="rating-row">
+                    <div className="stars">
+                      {[1,2,3,4,5].map(i => (
+                        <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill={i <= 4 ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3 6.5 7 1-5 5 1.5 7-6.5-3.5L5.5 21.5 7 14.5 2 9.5l7-1z"/></svg>
+                      ))}
+                    </div>
+                    <span className="rating-count">4.8 · 128 avaliações</span>
+                  </div>
+
+                  <div className="price-row">
+                    <span className="price">R$ 329,00</span>
+                    <span className="price-old">R$ 389,00</span>
+                    <span className="badge badge-leaf">-15%</span>
+                  </div>
+                  <p className="price-note">Ou 3x de R$ 109,67 sem juros · Frete grátis a partir de R$ 300</p>
+
+                  <div className="opt-row">
+                    <div className="opt-label">
+                      <strong>Paleta</strong>
+                      <span className="sep"></span>
+                      <span>{variants[variant].name}</span>
+                    </div>
+                    <div className="swatches">
+                      {variants.map((v, i) => (
+                        <div key={i} className={`swatch ${variant === i ? 'active' : ''}`} onClick={() => setVariant(i)} title={v.name}>
+                          <img src={v.img} alt={v.name} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="opt-row">
+                    <div className="opt-label">
+                      <strong>Tamanho</strong>
+                      <span className="sep"></span>
+                      <span>Ideal para presente</span>
+                    </div>
+                    <div className="sizes">
+                      {sizes.map((s, i) => (
+                        <button
+                          key={i}
+                          className={`size-chip ${size === i ? 'active' : ''} ${i === 4 ? 'disabled' : ''}`}
+                          onClick={() => i !== 4 && setSize(i)}
+                        >{s}</button>
+                      ))}
+                    </div>
+                    <a href="#" className="size-link">Guia de tamanhos →</a>
+                  </div>
+
+                  <div className="cta-row">
+                    <button className="btn-cart">
+                      <svg className="icon" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                      Adicionar à sacola · R$ 329,00
+                    </button>
+                    <button className="btn-fav-lg" title="Favoritar">
+                      <svg className="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </button>
+                  </div>
+                  <div className="shipping-note">
+                    <svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    Entrega em São Paulo no mesmo dia · Outras cidades em até 48h
+                  </div>
+
+                  <div className="tabs">
+                    <div className="tab-heads">
+                      {[{k:'desc',l:'Descrição'},{k:'care',l:'Cuidados'},{k:'del',l:'Entrega'}].map(t => (
+                        <div key={t.k} className={`tab-head ${tab === t.k ? 'active' : ''}`} onClick={() => setTab(t.k)}>{t.l}</div>
+                      ))}
+                    </div>
+                    <div className="tab-body">
+                      {tab === 'desc' && (
+                        <>
+                          <p>Um arranjo que celebra os tons quentes da primavera. Combina <strong>rosas de jardim</strong> em blush, <strong>ranúnculos</strong> em pêssego, <strong>frésias</strong> brancas e folhagem de eucalipto-prata. Montado à mão no dia do envio.</p>
+                          <div className="feat-grid">
+                            <div className="feat">
+                              <span className="fi"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M12 2v20M5 9l7-7 7 7M5 15l7 7 7-7"/></svg></span>
+                              <div><strong>Altura · 45 cm</strong>Perfeito para mesa de jantar</div>
+                            </div>
+                            <div className="feat">
+                              <span className="fi"><svg className="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
+                              <div><strong>Dura 7–10 dias</strong>Com os cuidados recomendados</div>
+                            </div>
+                            <div className="feat">
+                              <span className="fi"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+                              <div><strong>Feito à mão</strong>Por floristas da Frésia</div>
+                            </div>
+                            <div className="feat">
+                              <span className="fi"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/><path d="M3 12h18"/></svg></span>
+                              <div><strong>Origem nacional</strong>Produtores de Holambra & SP</div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {tab === 'care' && (<p>Troque a água a cada 2 dias, corte 1 cm do caule em diagonal e mantenha longe de sol direto e correntes de ar. Fornecemos o sachê de conservante junto com o arranjo.</p>)}
+                      {tab === 'del' && (<p>Entrega expressa em São Paulo capital no mesmo dia (pedidos até 14h). Região metropolitana: 24h. Outras capitais: 48h. Você pode agendar data e janela de entrega no checkout.</p>)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <section className="related">
+                <div className="related-head">
+                  <h2>Você também pode <em>gostar</em></h2>
+                  <a href="Store.html">Ver tudo →</a>
+                </div>
+                <div className="related-grid">
+                  {related.map((p, i) => (
+                    <div key={i} className="p-card">
+                      <div className="p-card-img">
+                        {p.badge && <span className="badge badge-lilac hero-badge" style={{top: 14, left: 14}}>{p.badge}</span>}
+                        <button className="p-card-fav">
+                          <svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        </button>
+                        <img src={p.img} alt={p.name} />
+                      </div>
+                      <div className="p-card-body">
+                        <div className="p-card-name">{p.name}</div>
+                        <div className="p-card-cat">{p.cat}</div>
+                        <div className="p-card-foot">
+                          <div className="p-card-price">{p.price}</div>
+                          <button className="p-card-add" title="Adicionar">
+                            <svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+        <FresiaFooter />
+      </div>
+    );
+  };
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

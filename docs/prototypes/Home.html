@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Frésia — Floricultura Boutique</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  /* Hero */
+  .hero {
+    padding: 40px 0 0;
+  }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 32px;
+    align-items: stretch;
+  }
+  .hero-copy {
+    background: linear-gradient(160deg, var(--lilac-50) 0%, #fef9f5 60%, var(--petal-50) 100%);
+    border-radius: var(--radius-xl);
+    padding: 56px 56px 48px;
+    position: relative;
+    overflow: hidden;
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-height: 540px;
+  }
+  .hero-copy::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, var(--petal-200) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0.6;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    color: var(--ink-700);
+    width: fit-content;
+    margin-bottom: 28px;
+  }
+  .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--leaf-500); animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+  .hero-title {
+    font-size: clamp(44px, 5.5vw, 76px);
+    line-height: 1.02;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+  }
+  .hero-title em { color: var(--lilac-600); font-style: italic; font-weight: 400; }
+  .hero-desc {
+    font-size: 16px;
+    color: var(--ink-600);
+    max-width: 440px;
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+  .hero-cta-row { display: flex; gap: 12px; margin-bottom: 36px; }
+  .hero-cta-row .btn { padding: 16px 28px; font-size: 14px; }
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(29, 25, 45, 0.08);
+  }
+  .hero-stat-num { font-family: var(--font-display); font-size: 36px; font-weight: 500; color: var(--ink-900); line-height: 1; }
+  .hero-stat-label { font-size: 12px; color: var(--ink-500); margin-top: 6px; }
+
+  .hero-image {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    position: relative;
+    background: var(--petal-50);
+    min-height: 540px;
+  }
+  .hero-image img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-floating {
+    position: absolute;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(8px);
+    border-radius: var(--radius-lg);
+    padding: 14px 18px;
+    box-shadow: var(--shadow-lg);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hf-1 { top: 32px; left: 32px; }
+  .hf-2 { bottom: 32px; right: 32px; }
+  .hf-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--lilac-400), var(--petal-400)); }
+  .hf-title { font-size: 12px; color: var(--ink-500); }
+  .hf-value { font-size: 14px; font-weight: 500; color: var(--ink-900); }
+
+  /* Marquee */
+  .marquee {
+    margin-top: 28px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    display: flex; gap: 60px;
+    white-space: nowrap;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 24px;
+    color: var(--ink-400);
+  }
+  .marquee span { display: inline-flex; align-items: center; gap: 60px; animation: marquee 40s linear infinite; }
+  .marquee span::after { content: '✿'; color: var(--petal-400); font-style: normal; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+
+  /* Section */
+  .section { padding: 96px 0; }
+  .section-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 48px;
+    gap: 32px;
+  }
+  .section-head h2 { font-size: clamp(32px, 3.5vw, 48px); max-width: 540px; }
+  .section-head h2 em { font-style: italic; color: var(--lilac-600); font-weight: 400; }
+  .section-head-right { font-size: 14px; color: var(--ink-500); max-width: 320px; text-align: right; }
+
+  /* Categories */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    grid-template-rows: 280px 280px;
+    grid-template-areas:
+      "a b c d"
+      "a e f f";
+    gap: 16px;
+  }
+  .cat-card {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    background: var(--ink-100);
+    transition: transform 0.3s;
+  }
+  .cat-card:hover { transform: translateY(-4px); }
+  .cat-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .cat-card:hover img { transform: scale(1.06); }
+  .cat-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(20,18,24,0.55) 0%, rgba(20,18,24,0) 55%);
+  }
+  .cat-label {
+    position: absolute; bottom: 20px; left: 20px; right: 20px;
+    color: white;
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 1;
+  }
+  .cat-name { font-family: var(--font-display); font-size: 22px; font-weight: 500; }
+  .cat-count { font-size: 12px; opacity: 0.85; }
+  .cat-arrow {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    color: var(--ink-900);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .g-a { grid-area: a; } .g-b { grid-area: b; } .g-c { grid-area: c; }
+  .g-d { grid-area: d; } .g-e { grid-area: e; } .g-f { grid-area: f; }
+
+  /* Products */
+  .p-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .p-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .p-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .p-card-img { aspect-ratio: 1; background: var(--ink-100); position: relative; overflow: hidden; }
+  .p-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .p-card:hover .p-card-img img { transform: scale(1.06); }
+  .p-card-body { padding: 18px; }
+  .p-card-name { font-size: 15px; color: var(--ink-900); margin-bottom: 4px; font-weight: 500; }
+  .p-card-cat { font-size: 12px; color: var(--ink-500); margin-bottom: 12px; }
+  .p-card-foot { display: flex; align-items: center; justify-content: space-between; }
+  .p-card-price { font-family: var(--font-display); font-size: 20px; font-weight: 500; color: var(--ink-900); }
+  .p-card-add { width: 36px; height: 36px; border-radius: 50%; background: var(--ink-900); color: white; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .p-card-add:hover { background: var(--lilac-500); }
+  .p-card-fav { position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.92); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-700); }
+  .p-card-badge { position: absolute; top: 14px; left: 14px; }
+
+  /* Editorial */
+  .editorial {
+    background: var(--forest-900);
+    color: white;
+    border-radius: var(--radius-xl);
+    padding: 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .editorial h2 { color: white; font-size: 48px; max-width: 460px; }
+  .editorial h2 em { color: var(--petal-300); font-style: italic; font-weight: 400; }
+  .editorial p { color: rgba(255,255,255,0.7); margin: 24px 0 32px; font-size: 15px; line-height: 1.7; max-width: 440px; }
+  .editorial .btn-ghost { color: white; border-color: rgba(255,255,255,0.3); }
+  .editorial .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: white; }
+  .editorial-img {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 4/5;
+  }
+  .editorial-img img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Value props */
+  .values { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 32px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .value { display: flex; gap: 14px; align-items: flex-start; }
+  .value-icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--lilac-50); color: var(--lilac-600);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .value strong { display: block; color: var(--ink-900); font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+  .value span { font-size: 12px; color: var(--ink-500); line-height: 1.5; }
+
+  /* Testimonials */
+  .test-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .test {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .test-stars { color: var(--petal-500); display: flex; gap: 2px; }
+  .test-quote { font-family: var(--font-display); font-size: 18px; line-height: 1.5; color: var(--ink-900); flex: 1; }
+  .test-author { display: flex; align-items: center; gap: 12px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .test-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--lilac-100); }
+  .test-name { font-size: 14px; font-weight: 500; color: var(--ink-900); }
+  .test-date { font-size: 12px; color: var(--ink-500); }
+
+  /* CTA band */
+  .cta-band {
+    background: linear-gradient(120deg, var(--petal-100), var(--lilac-100));
+    border-radius: var(--radius-xl);
+    padding: 72px 64px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .cta-band h2 { font-size: 44px; }
+  .cta-band h2 em { color: var(--lilac-700); font-style: italic; font-weight: 400; }
+  .cta-band .form { display: flex; gap: 8px; margin-top: 24px; max-width: 420px; }
+
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .cat-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-template-areas: none; }
+    .cat-grid > * { grid-area: unset !important; aspect-ratio: 1; }
+    .p-grid { grid-template-columns: repeat(2, 1fr); }
+    .values, .test-grid { grid-template-columns: 1fr; }
+    .editorial { grid-template-columns: 1fr; padding: 48px; }
+    .cta-band { grid-template-columns: 1fr; padding: 48px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="assets/shared.js"></script>
+<script type="text/babel">
+  const categories = [
+    { name: 'Buquês',     count: '42 arranjos',  img: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=900&q=80', cls: 'g-a' },
+    { name: 'Peônias',    count: '12 opções',    img: 'https://images.unsplash.com/photo-1533616688419-b7a585564566?w=700&q=80', cls: 'g-b' },
+    { name: 'Plantas',    count: '28 espécies',  img: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=700&q=80', cls: 'g-c' },
+    { name: 'Orquídeas',  count: '16 variações', img: 'https://images.unsplash.com/photo-1558005137-d9619a5c539f?w=700&q=80', cls: 'g-d' },
+    { name: 'Presentes',  count: 'Caixas & kits',img: 'https://images.unsplash.com/photo-1487530811176-3780de880c2d?w=700&q=80', cls: 'g-e' },
+    { name: 'Eventos',    count: 'Casamentos & corporativo', img: 'https://images.unsplash.com/photo-1469259943454-aa100abba749?w=1200&q=80', cls: 'g-f' },
+  ];
+
+  const featured = [
+    { name: 'Buquê Primavera em Pêssego', cat: 'Mix autoral',      price: 'R$ 329', img: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=600&q=80', badge: 'Bestseller' },
+    { name: 'Nuvem Lavanda',              cat: 'Lilás & lavanda',  price: 'R$ 289', img: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=600&q=80', badge: null },
+    { name: 'Peônias Blush',              cat: 'Peônias',          price: 'R$ 420', img: 'https://images.unsplash.com/photo-1533616688419-b7a585564566?w=600&q=80', badge: 'Limitado' },
+    { name: 'Jardim Secreto',             cat: 'Mix silvestre',    price: 'R$ 345', img: 'https://images.unsplash.com/photo-1469259943454-aa100abba749?w=600&q=80', badge: 'Novo' },
+  ];
+
+  const bestsellers = [
+    { name: 'Campo de Margaridas', cat: 'Flores do campo', price: 'R$ 198', img: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=600&q=80', badge: null },
+    { name: 'Orquídea Phalaenopsis', cat: 'Orquídeas', price: 'R$ 249', img: 'https://images.unsplash.com/photo-1558005137-d9619a5c539f?w=600&q=80', badge: null },
+    { name: 'Rosas Vintage',       cat: 'Rosas',             price: 'R$ 259', img: 'https://images.unsplash.com/photo-1455659817273-f96807779a8a?w=600&q=80', badge: 'Oferta' },
+    { name: 'Frésia Coleção',      cat: 'Frésias',           price: 'R$ 219', img: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600&q=80', badge: null },
+  ];
+
+  const tests = [
+    { q: 'Cheguei atrasado no aniversário da minha mãe — mas o arranjo da Frésia salvou o dia. Veio exatamente como na foto.', n: 'Rafael S.',   d: 'Há 2 dias' },
+    { q: 'As peônias duraram mais de 10 dias. Atendimento impecável e o cartão escrito à mão foi um toque lindo.',              n: 'Juliana M.',  d: 'Há 1 semana' },
+    { q: 'Encomendei para um casamento íntimo. A equipe entendeu perfeitamente a paleta e entregou algo mais bonito ainda.',   n: 'Camila & André', d: 'Há 3 semanas' },
+  ];
+
+  const values = [
+    { t: 'Entrega no mesmo dia', d: 'Pedidos até 14h em SP', i: <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7zM5.5 18.5a2.5 2.5 0 1 0 0 0M18.5 18.5a2.5 2.5 0 1 0 0 0"/> },
+    { t: 'Feito à mão', d: 'Por floristas da casa', i: <path d="M12 2a4 4 0 0 1 4 4c0 3-2 5-4 5s-4-2-4-5a4 4 0 0 1 4-4zM12 11v11M7 22h10"/> },
+    { t: '7 dias de garantia', d: 'De frescor e beleza', i: <path d="M12 2l3 6.5 7 1-5 5 1.5 7-6.5-3.5L5.5 21.5 7 14.5 2 9.5l7-1z"/> },
+    { t: 'Embrulho do presente', d: 'Cartão escrito à mão', i: <path d="M3 7h18v14H3zM3 7l9-5 9 5M12 7v14"/> },
+  ];
+
+  const App = () => (
+    <div className="page-wrap">
+      <FresiaHeader cartCount={3} activePage="home" />
+      <main>
+        <div className="container">
+          <section className="hero">
+            <div className="hero-inner">
+              <div className="hero-copy">
+                <div>
+                  <div className="hero-eyebrow"><span className="dot"></span>Primavera 2026 chegou</div>
+                  <h1 className="hero-title">Flores que <em>contam</em><br/>uma história.</h1>
+                  <p className="hero-desc">Arranjos autorais feitos à mão em São Paulo. Colhidas ontem, entregues hoje — com cuidado de quem entende que cada pétala importa.</p>
+                  <div className="hero-cta-row">
+                    <a href="Store.html" className="btn btn-primary">Explorar loja →</a>
+                    <a href="#" className="btn btn-ghost">Coleção Primavera</a>
+                  </div>
+                </div>
+                <div className="hero-stats">
+                  <div><div className="hero-stat-num">12k+</div><div className="hero-stat-label">Arranjos entregues</div></div>
+                  <div><div className="hero-stat-num">4.9★</div><div className="hero-stat-label">Média de 2.400 reviews</div></div>
+                  <div><div className="hero-stat-num">3h</div><div className="hero-stat-label">Entrega média em SP</div></div>
+                </div>
+              </div>
+              <div className="hero-image">
+                <img src="https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=1400&q=80" alt="" />
+                <div className="hero-floating hf-1">
+                  <div className="hf-avatar"></div>
+                  <div>
+                    <div className="hf-title">Mais pedido hoje</div>
+                    <div className="hf-value">Buquê Primavera em Pêssego</div>
+                  </div>
+                </div>
+                <div className="hero-floating hf-2">
+                  <svg className="icon" viewBox="0 0 24 24" style={{color: 'var(--leaf-500)'}}><path d="M20 6 9 17l-5-5"/></svg>
+                  <div>
+                    <div className="hf-title">Entrega em</div>
+                    <div className="hf-value">2h 45min · SP</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="marquee">
+              <span>Rosas &nbsp;&nbsp; Peônias &nbsp;&nbsp; Frésias &nbsp;&nbsp; Ranúnculos &nbsp;&nbsp; Orquídeas &nbsp;&nbsp; Lavanda &nbsp;&nbsp; Eucalipto &nbsp;&nbsp; Margaridas &nbsp;&nbsp; Hortênsias &nbsp;&nbsp; Tulipas &nbsp;&nbsp;</span>
+              <span>Rosas &nbsp;&nbsp; Peônias &nbsp;&nbsp; Frésias &nbsp;&nbsp; Ranúnculos &nbsp;&nbsp; Orquídeas &nbsp;&nbsp; Lavanda &nbsp;&nbsp; Eucalipto &nbsp;&nbsp; Margaridas &nbsp;&nbsp; Hortênsias &nbsp;&nbsp; Tulipas &nbsp;&nbsp;</span>
+            </div>
+          </section>
+
+          <section className="section">
+            <div className="section-head">
+              <h2>Explore por <em>categoria</em></h2>
+              <p className="section-head-right">Do arranjo do dia-a-dia ao decor de casamento — temos algo certo para cada gesto.</p>
+            </div>
+            <div className="cat-grid">
+              {categories.map((c, i) => (
+                <div key={i} className={`cat-card ${c.cls}`}>
+                  <img src={c.img} alt={c.name} />
+                  <div className="cat-label">
+                    <div>
+                      <div className="cat-name">{c.name}</div>
+                      <div className="cat-count">{c.count}</div>
+                    </div>
+                    <span className="cat-arrow">
+                      <svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="section" style={{paddingTop: 0}}>
+            <div className="section-head">
+              <h2>Em <em>destaque</em> esta semana</h2>
+              <div style={{display: 'flex', gap: 8}}>
+                <button className="btn-icon"><svg className="icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+                <button className="btn-icon"><svg className="icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+              </div>
+            </div>
+            <div className="p-grid">
+              {featured.map((p, i) => (
+                <a href="Product.html" key={i} className="p-card">
+                  <div className="p-card-img">
+                    {p.badge && <span className="badge badge-lilac p-card-badge">{p.badge}</span>}
+                    <button className="p-card-fav"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+                    <img src={p.img} alt={p.name} />
+                  </div>
+                  <div className="p-card-body">
+                    <div className="p-card-name">{p.name}</div>
+                    <div className="p-card-cat">{p.cat}</div>
+                    <div className="p-card-foot">
+                      <div className="p-card-price">{p.price}</div>
+                      <button className="p-card-add"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+
+          <section className="section" style={{paddingTop: 0}}>
+            <div className="editorial">
+              <div>
+                <span className="badge badge-petal" style={{marginBottom: 24}}>Frésia Atelier</span>
+                <h2>Flores para <em>momentos</em> que merecem mais.</h2>
+                <p>Nosso atelier em Pinheiros recebe você para consultas de casamento, eventos corporativos e assinaturas semanais. Cada projeto começa com uma conversa — e termina com algo irrepetível.</p>
+                <a href="#" className="btn btn-ghost">Agendar conversa →</a>
+              </div>
+              <div className="editorial-img">
+                <img src="https://images.unsplash.com/photo-1470115636492-6d2b56f9146d?w=900&q=80" alt="" />
+              </div>
+            </div>
+          </section>
+
+          <section className="section" style={{paddingTop: 0}}>
+            <div className="values">
+              {values.map((v, i) => (
+                <div key={i} className="value">
+                  <span className="value-icon">
+                    <svg className="icon" viewBox="0 0 24 24">{v.i}</svg>
+                  </span>
+                  <div><strong>{v.t}</strong><span>{v.d}</span></div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="section" style={{paddingTop: 0}}>
+            <div className="section-head">
+              <h2>Os <em>mais queridos</em></h2>
+              <a href="Store.html" style={{fontSize: 14, color: 'var(--ink-600)', borderBottom: '1px solid var(--ink-300)', paddingBottom: 2}}>Ver loja completa →</a>
+            </div>
+            <div className="p-grid">
+              {bestsellers.map((p, i) => (
+                <a href="Product.html" key={i} className="p-card">
+                  <div className="p-card-img">
+                    {p.badge && <span className="badge badge-petal p-card-badge">{p.badge}</span>}
+                    <button className="p-card-fav"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+                    <img src={p.img} alt={p.name} />
+                  </div>
+                  <div className="p-card-body">
+                    <div className="p-card-name">{p.name}</div>
+                    <div className="p-card-cat">{p.cat}</div>
+                    <div className="p-card-foot">
+                      <div className="p-card-price">{p.price}</div>
+                      <button className="p-card-add"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+
+          <section className="section" style={{paddingTop: 0}}>
+            <div className="section-head">
+              <h2>Quem recebeu, <em>contou</em></h2>
+              <p className="section-head-right">4.9 / 5 em 2.400+ avaliações verificadas</p>
+            </div>
+            <div className="test-grid">
+              {tests.map((t, i) => (
+                <div key={i} className="test">
+                  <div className="test-stars">{[1,2,3,4,5].map(s => <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.5 7 1-5 5 1.5 7-6.5-3.5L5.5 21.5 7 14.5 2 9.5l7-1z"/></svg>)}</div>
+                  <div className="test-quote">"{t.q}"</div>
+                  <div className="test-author">
+                    <div className="test-avatar"></div>
+                    <div>
+                      <div className="test-name">{t.n}</div>
+                      <div className="test-date">{t.d}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="section" style={{paddingTop: 0}}>
+            <div className="cta-band">
+              <div>
+                <h2>Receba <em>inspiração</em><br/>no seu e-mail.</h2>
+                <p style={{marginTop: 14, fontSize: 15, color: 'var(--ink-700)', maxWidth: 420}}>Novas coleções, guias de cuidados e 10% off na sua primeira compra.</p>
+                <form className="form" onSubmit={e => e.preventDefault()}>
+                  <input className="input" placeholder="seu@email.com" />
+                  <button className="btn btn-primary">Assinar</button>
+                </form>
+              </div>
+              <div style={{position: 'relative'}}>
+                <div style={{borderRadius: 'var(--radius-lg)', overflow: 'hidden', aspectRatio: '4/3', background: 'white'}}>
+                  <img src="https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?w=800&q=80" alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+      <FresiaFooter />
+    </div>
+  );
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

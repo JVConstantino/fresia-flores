@@ -1,0 +1,146 @@
+/* Header */
+.fresia-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(249, 248, 252, 0.85);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.fresia-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 28px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 40px;
+}
+.fresia-logo { display: flex; align-items: center; }
+.fresia-logo img { height: 40px; width: auto; }
+.fresia-nav { display: flex; gap: 32px; justify-content: center; }
+.fresia-nav a {
+  font-size: 14px;
+  color: var(--ink-600);
+  padding: 8px 2px;
+  position: relative;
+  transition: color 0.15s;
+}
+.fresia-nav a:hover { color: var(--ink-900); }
+.fresia-nav a.active { color: var(--ink-900); font-weight: 500; }
+.fresia-nav a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--petal-400);
+}
+.fresia-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fresia-search-btn, .fresia-icon-btn, .fresia-cart-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--ink-700);
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+.fresia-search-btn:hover, .fresia-icon-btn:hover, .fresia-cart-btn:hover {
+  background: var(--ink-100);
+  color: var(--ink-900);
+}
+.fresia-cart-badge {
+  position: absolute;
+  top: 4px; right: 4px;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--petal-400);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 2px solid var(--bg);
+}
+
+/* Footer */
+.fresia-footer {
+  background: white;
+  border-top: 1px solid var(--border);
+  padding: 72px 0 32px;
+  margin-top: 120px;
+}
+.fresia-footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1.4fr;
+  gap: 48px;
+  padding-bottom: 56px;
+}
+.fresia-footer-brand {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 44px;
+  color: var(--lilac-500);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+.fresia-footer-tag { color: var(--ink-500); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+.fresia-footer h5 {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-900);
+  margin: 0 0 18px;
+}
+.fresia-footer a {
+  display: block;
+  padding: 5px 0;
+  font-size: 14px;
+  color: var(--ink-500);
+}
+.fresia-footer a:hover { color: var(--ink-900); }
+.fresia-socials { display: flex; gap: 10px; }
+.fresia-socials a {
+  width: 36px; height: 36px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+.fresia-socials a:hover { background: var(--ink-900); color: white; border-color: var(--ink-900); }
+.fresia-newsletter { display: flex; gap: 8px; }
+.fresia-newsletter .input { flex: 1; padding: 12px 14px; }
+.fresia-newsletter .btn { padding: 12px 20px; }
+.fresia-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+/* Page shell */
+.page-wrap { min-height: 100vh; display: flex; flex-direction: column; }
+.page-wrap main { flex: 1; }
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-500);
+  padding: 20px 0;
+}
+.breadcrumb a:hover { color: var(--ink-900); }
+.breadcrumb .sep { color: var(--ink-300); }
+.breadcrumb .current { color: var(--ink-900); }

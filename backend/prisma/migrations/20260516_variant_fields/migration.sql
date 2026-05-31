@@ -1,0 +1,4 @@
+ALTER TABLE `ProductVariant`
+  ADD COLUMN `description` VARCHAR(191) NULL,
+  ADD COLUMN `salePrice` DECIMAL(10,2) NULL,
+  ADD COLUMN `images` LONGTEXT NULL;

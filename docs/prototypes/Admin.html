@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Admin — Frésia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<style>
+  body { background: #eceaf2; }
+  .admin-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; gap: 0; padding: 16px; }
+  .sidebar {
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: 20px 14px;
+    display: flex; flex-direction: column;
+    position: sticky; top: 16px;
+    height: calc(100vh - 32px);
+  }
+  .s-brand { display: flex; align-items: center; gap: 12px; padding: 6px 10px 20px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+  .s-brand img { height: 32px; }
+  .s-brand .collapse { margin-left: auto; width: 28px; height: 28px; border-radius: 6px; background: var(--ink-100); color: var(--ink-600); display: inline-flex; align-items: center; justify-content: center; }
+
+  .s-search { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--ink-50); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 14px; font-size: 13px; color: var(--ink-500); }
+  .s-search .kbd { margin-left: auto; padding: 2px 8px; background: white; border: 1px solid var(--border); border-radius: 4px; font-size: 11px; color: var(--ink-500); }
+
+  .s-section { font-size: 11px; color: var(--ink-400); letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 14px 6px; font-weight: 600; }
+  .s-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-md); color: var(--ink-700); font-size: 14px; cursor: pointer; transition: all 0.15s; }
+  .s-item:hover { background: var(--ink-50); }
+  .s-item.active { background: var(--lilac-500); color: white; }
+  .s-item.active .cnt { background: rgba(255,255,255,0.2); color: white; }
+  .s-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+  .s-item .cnt { margin-left: auto; background: var(--ink-100); color: var(--ink-700); font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .s-sub { padding-left: 30px; }
+  .s-sub .s-item { padding: 7px 14px; font-size: 13px; color: var(--ink-500); }
+  .s-sub .s-item::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--ink-300); }
+
+  .s-user {
+    margin-top: auto;
+    padding: 12px;
+    background: var(--ink-50);
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .s-user .av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--lilac-400), var(--petal-400)); }
+  .s-user .nm { font-size: 13px; font-weight: 500; color: var(--ink-900); }
+  .s-user .rl { font-size: 11px; color: var(--ink-500); }
+
+  .main { padding: 0 16px; display: flex; flex-direction: column; gap: 16px; }
+  .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+  .top-title h1 { font-size: 32px; letter-spacing: -0.01em; }
+  .top-title p { font-size: 13px; color: var(--ink-500); margin-top: 3px; }
+  .top-title p .sync { color: var(--leaf-500); }
+  .top-search { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: white; border: 1px solid var(--border); border-radius: var(--radius-md); width: 280px; font-size: 13px; color: var(--ink-500); }
+  .top-actions { display: flex; gap: 8px; align-items: center; }
+  .top-actions .btn { padding: 10px 16px; font-size: 13px; border-radius: var(--radius-md); }
+  .btn-invoice { background: white; border: 1px solid var(--border); color: var(--ink-800); display: inline-flex; align-items: center; gap: 8px; }
+  .btn-new { background: var(--lilac-500); color: white; padding: 10px 18px !important; display: inline-flex; align-items: center; gap: 8px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; }
+  .btn-new:hover { background: var(--lilac-600); }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .kpi {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .kpi-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .kpi-ic { width: 42px; height: 42px; border-radius: var(--radius-md); display: inline-flex; align-items: center; justify-content: center; color: white; }
+  .kpi-ic.a { background: var(--lilac-500); }
+  .kpi-ic.b { background: var(--forest-600); }
+  .kpi-ic.c { background: var(--petal-400); }
+  .kpi-ic.d { background: var(--leaf-500); }
+  .kpi-label { font-size: 12px; color: var(--ink-500); margin-bottom: 4px; }
+  .kpi-val { font-family: var(--font-display); font-size: 32px; font-weight: 500; line-height: 1; color: var(--ink-900); }
+  .kpi-trend { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .tr-up { background: var(--leaf-50); color: var(--leaf-600); }
+  .tr-down { background: var(--petal-50); color: var(--petal-600); }
+
+  .panels-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; }
+  .panel { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+  .panel h3 { font-family: var(--font-sans); font-size: 14px; font-weight: 600; margin-bottom: 2px; color: var(--ink-900); }
+  .panel .sub { font-size: 12px; color: var(--ink-500); }
+
+  .seg { display: flex; background: var(--ink-50); padding: 3px; border-radius: var(--radius-md); }
+  .seg button { padding: 7px 14px; font-size: 12px; font-weight: 500; border-radius: 6px; color: var(--ink-500); }
+  .seg button.active { background: white; color: var(--ink-900); box-shadow: var(--shadow-sm); }
+
+  .rev-big { display: flex; align-items: baseline; gap: 12px; margin: 8px 0 20px; }
+  .rev-big .amt { font-family: var(--font-display); font-size: 40px; font-weight: 500; color: var(--ink-900); }
+  .rev-big .chg { padding: 4px 10px; background: var(--leaf-50); color: var(--leaf-600); border-radius: 999px; font-size: 12px; font-weight: 600; }
+
+  .chart { height: 220px; display: flex; align-items: flex-end; gap: 10px; padding: 20px 8px 30px; position: relative; border-bottom: 1px solid var(--border); }
+  .chart::before { content: ''; position: absolute; top: 10px; left: 0; right: 0; height: 1px; background: var(--ink-100); border-top: 1px dashed var(--ink-200); background: transparent; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; }
+  .bar { width: 100%; background: var(--ink-100); border-radius: 6px 6px 0 0; position: relative; }
+  .bar.now { background: var(--lilac-500); }
+  .bar-lbl { font-size: 11px; color: var(--ink-500); position: absolute; bottom: -24px; }
+  .bar-cap {
+    position: absolute; bottom: 100%;
+    padding: 4px 10px; background: var(--ink-900); color: white;
+    border-radius: var(--radius-sm); font-size: 11px;
+    white-space: nowrap;
+    margin-bottom: 8px;
+  }
+
+  /* Donut */
+  .donut-wrap { position: relative; display: flex; justify-content: center; padding: 8px 0 16px; }
+  .donut-svg { width: 180px; height: 180px; transform: rotate(-90deg); }
+  .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .donut-center .n { font-family: var(--font-display); font-size: 30px; font-weight: 500; color: var(--ink-900); line-height: 1; }
+  .donut-center .l { font-size: 11px; color: var(--ink-500); margin-top: 4px; }
+  .legend { display: flex; flex-direction: column; gap: 10px; }
+  .lg { display: flex; justify-content: space-between; font-size: 13px; }
+  .lg .n { display: inline-flex; gap: 8px; align-items: center; color: var(--ink-700); }
+  .lg .n::before { content: ''; width: 10px; height: 10px; border-radius: 3px; }
+  .lg.a .n::before { background: var(--lilac-500); }
+  .lg.b .n::before { background: var(--petal-400); }
+  .lg.c .n::before { background: var(--leaf-500); }
+  .lg.d .n::before { background: var(--warm-400); }
+  .lg .v { color: var(--ink-900); font-weight: 500; }
+
+  /* Table */
+  .panel-table { padding: 0; }
+  .pt-head { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .tbl-search { padding: 8px 14px; background: var(--ink-50); border-radius: var(--radius-md); font-size: 12px; color: var(--ink-500); display: inline-flex; align-items: center; gap: 6px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; color: var(--ink-500); font-weight: 500; padding: 14px 24px; text-transform: uppercase; letter-spacing: 0.06em; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--ink-50); }
+  td { padding: 14px 24px; font-size: 13px; color: var(--ink-800); border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .prod-cell { display: flex; align-items: center; gap: 12px; }
+  .prod-img { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; background: var(--ink-100); }
+  .prod-img img { width: 100%; height: 100%; object-fit: cover; }
+  .buyer { display: flex; align-items: center; gap: 10px; }
+  .buyer .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--lilac-400), var(--petal-400)); }
+  .buyer .em { font-size: 11px; color: var(--ink-500); }
+  .stock-pill { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; display: inline-flex; gap: 5px; align-items: center; }
+  .stock-in { background: var(--leaf-50); color: var(--leaf-600); }
+  .stock-low { background: var(--petal-50); color: var(--petal-600); }
+  .stock-out { background: #fde8e8; color: #b04040; }
+  .row-actions { display: inline-flex; gap: 4px; }
+  .row-actions button { width: 28px; height: 28px; border-radius: 6px; background: var(--ink-50); color: var(--ink-600); display: inline-flex; align-items: center; justify-content: center; }
+  .row-actions button:hover { background: var(--ink-100); color: var(--ink-900); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+  const nav = [
+    { g: 'main', items: [
+      { k: 'home', l: 'Dashboard', active: true, ic: <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/> },
+      { k: 'orders', l: 'Pedidos', cnt: 12, ic: <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/> },
+      { k: 'rev', l: 'Faturamento', ic: <path d="M3 3v18h18M7 16l4-4 4 4 5-5"/> },
+      { k: 'camp', l: 'Campanhas', ic: <path d="M3 11l18-8-4 18-8-7z"/> },
+    ]},
+    { g: 'Estoque', items: [
+      { k: 'inv', l: 'Inventário', ic: <path d="M20 7 12 3 4 7v10l8 4 8-4zM12 3v18"/> },
+      { k: 'cat', l: 'Categorias', ic: <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>, sub: ['Buquês', 'Peônias', 'Orquídeas'] },
+      { k: 'offer', l: 'Ofertas especiais', ic: <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7"/> },
+    ]},
+    { g: 'Operação', items: [
+      { k: 'cust', l: 'Clientes', ic: <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/> },
+      { k: 'sup', l: 'Suporte', ic: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/> },
+    ]},
+  ];
+
+  const topProducts = [
+    { n: 'Buquê Primavera em Pêssego', cat: 'Buquês',    p: 329, s: 214, stock: 'in',  sl: '38 em estoque', buyer: { n: 'Beatriz F.', em: 'beatriz@email.com' }, img: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=200&q=80' },
+    { n: 'Peônias Blush',              cat: 'Peônias',   p: 420, s: 178, stock: 'low', sl: '6 em estoque',  buyer: { n: 'Rafael S.', em: 'rafa@email.com' },    img: 'https://images.unsplash.com/photo-1533616688419-b7a585564566?w=200&q=80' },
+    { n: 'Nuvem Lavanda',              cat: 'Lilás',     p: 289, s: 142, stock: 'in',  sl: '22 em estoque', buyer: { n: 'Juliana M.', em: 'juliana@email.com' },img: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=200&q=80' },
+    { n: 'Orquídea Phalaenopsis',      cat: 'Orquídeas', p: 249, s: 98,  stock: 'out', sl: 'Esgotado',      buyer: { n: 'Camila A.', em: 'camila@email.com' },  img: 'https://images.unsplash.com/photo-1558005137-d9619a5c539f?w=200&q=80' },
+    { n: 'Jardim Secreto',             cat: 'Silvestres',p: 345, s: 87,  stock: 'in',  sl: '14 em estoque', buyer: { n: 'André V.', em: 'andre@email.com' },   img: 'https://images.unsplash.com/photo-1469259943454-aa100abba749?w=200&q=80' },
+  ];
+
+  const chartData = [45, 62, 48, 78, 55, 89, 124, 98, 72, 83, 58, 42];
+  const chartLabels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const nowIdx = 6;
+  const max = Math.max(...chartData);
+
+  // Donut
+  const segs = [
+    { l: 'Ads pagos',   v: 38, c: 'var(--lilac-500)' },
+    { l: 'Redes sociais', v: 28, c: 'var(--petal-400)' },
+    { l: 'Orgânico',    v: 22, c: 'var(--leaf-500)' },
+    { l: 'Indicação',   v: 12, c: 'var(--warm-400)' },
+  ];
+  let cum = 0;
+  const circ = 2 * Math.PI * 62;
+  const ssegs = segs.map(s => {
+    const len = (s.v / 100) * circ;
+    const el = { ...s, dash: `${len} ${circ - len}`, offset: -cum };
+    cum += len;
+    return el;
+  });
+
+  const App = () => (
+    <div className="admin-shell">
+      <aside className="sidebar">
+        <div className="s-brand">
+          <img src="assets/logo-fresia.png" alt="Frésia" />
+          <button className="collapse"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 18l-6-6 6-6"/></svg></button>
+        </div>
+        <div className="s-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          Buscar
+          <span className="kbd">⌘K</span>
+        </div>
+        {nav.map((g, gi) => (
+          <div key={gi}>
+            {g.g !== 'main' && <div className="s-section">{g.g}</div>}
+            {g.items.map(i => (
+              <React.Fragment key={i.k}>
+                <div className={`s-item ${i.active ? 'active' : ''}`}>
+                  <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">{i.ic}</svg>
+                  <span>{i.l}</span>
+                  {i.cnt && <span className="cnt">{i.cnt}</span>}
+                </div>
+                {i.sub && <div className="s-sub">{i.sub.map((s, si) => <div key={si} className="s-item">{s}</div>)}</div>}
+              </React.Fragment>
+            ))}
+          </div>
+        ))}
+        <div className="s-user">
+          <div className="av"></div>
+          <div>
+            <div className="nm">Ana · Admin</div>
+            <div className="rl">Atelier Pinheiros</div>
+          </div>
+          <svg style={{marginLeft: 'auto'}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+      </aside>
+
+      <div className="main">
+        <div className="top-bar">
+          <div className="top-title">
+            <h1>Dashboard</h1>
+            <p>📅 Q2 2026 Overview · <span style={{color: 'var(--leaf-600)'}}>● Ao vivo</span> · <span className="sync">Sincronizado 2s atrás</span></p>
+          </div>
+          <div style={{display: 'flex', gap: 10, alignItems: 'center'}}>
+            <div className="top-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              Buscar pedido, cliente…
+              <span style={{marginLeft: 'auto', background: 'var(--ink-100)', padding: '2px 6px', borderRadius: 4, fontSize: 10}}>⌘S</span>
+            </div>
+            <button className="btn-invoice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Exportar</button>
+            <button className="btn-invoice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Nota fiscal</button>
+            <button className="btn-new">+ Novo pedido</button>
+          </div>
+        </div>
+
+        <div className="kpi-row">
+          <div className="kpi">
+            <div className="kpi-top">
+              <div className="kpi-ic a"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div>
+              <button style={{color: 'var(--ink-400)'}}>⋯</button>
+            </div>
+            <div>
+              <div className="kpi-label">Total de clientes</div>
+              <div className="kpi-val">2.415</div>
+              <div className="kpi-trend tr-up" style={{marginTop: 10}}>↑ 12.4% vs mês anterior</div>
+            </div>
+          </div>
+          <div className="kpi">
+            <div className="kpi-top">
+              <div className="kpi-ic b"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3v18h18M7 16l4-4 4 4 5-5"/></svg></div>
+              <button style={{color: 'var(--ink-400)'}}>⋯</button>
+            </div>
+            <div>
+              <div className="kpi-label">Faturamento médio</div>
+              <div className="kpi-val">R$ 128.569</div>
+              <div className="kpi-trend tr-down" style={{marginTop: 10}}>↓ 1.2% vs mês anterior</div>
+            </div>
+          </div>
+          <div className="kpi">
+            <div className="kpi-top">
+              <div className="kpi-ic c"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg></div>
+              <button style={{color: 'var(--ink-400)'}}>⋯</button>
+            </div>
+            <div>
+              <div className="kpi-label">Pedidos no período</div>
+              <div className="kpi-val">1.415</div>
+              <div className="kpi-trend tr-up" style={{marginTop: 10}}>↑ 5.1% vs mês anterior</div>
+            </div>
+          </div>
+          <div className="kpi">
+            <div className="kpi-top">
+              <div className="kpi-ic d"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a4 4 0 0 1 0 8 4 4 0 0 1 0-8zM6 13h12v9H6z"/></svg></div>
+              <button style={{color: 'var(--ink-400)'}}>⋯</button>
+            </div>
+            <div>
+              <div className="kpi-label">Arranjos ativos</div>
+              <div className="kpi-val">64</div>
+              <div className="kpi-trend tr-up" style={{marginTop: 10}}>↑ 3 novos esta semana</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="panels-row">
+          <div className="panel">
+            <div className="panel-head">
+              <div>
+                <h3>Previsão de faturamento</h3>
+                <div className="sub">Projeção para o Q2 · Comparado ao trimestre anterior</div>
+              </div>
+              <div className="seg">
+                <button>Dia</button>
+                <button>Semana</button>
+                <button className="active">Mês</button>
+              </div>
+            </div>
+            <div className="rev-big">
+              <span className="amt">R$ 123.569,00</span>
+              <span className="chg">↑ 12%</span>
+            </div>
+            <div className="chart">
+              {chartData.map((d, i) => {
+                const h = (d / max) * 160;
+                return (
+                  <div key={i} className="bar-col">
+                    {i === nowIdx && <div className="bar-cap">Média R$ 89k</div>}
+                    <div className={`bar ${i === nowIdx ? 'now' : ''}`} style={{height: h + 'px'}}></div>
+                    <div className="bar-lbl">{chartLabels[i]}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="panel">
+            <div className="panel-head">
+              <div>
+                <h3>Canais de aquisição</h3>
+                <div className="sub">48.9k visitantes · Este mês</div>
+              </div>
+              <button style={{fontSize: 12, padding: '7px 12px', background: 'var(--ink-50)', borderRadius: 6, color: 'var(--ink-600)'}}>Este mês ▾</button>
+            </div>
+            <div className="donut-wrap">
+              <svg className="donut-svg" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="62" fill="none" stroke="var(--ink-100)" strokeWidth="16"/>
+                {ssegs.map((s, i) => (
+                  <circle key={i} cx="70" cy="70" r="62" fill="none" stroke={s.c} strokeWidth="16" strokeDasharray={s.dash} strokeDashoffset={s.offset}/>
+                ))}
+              </svg>
+              <div className="donut-center">
+                <div className="n">38%</div>
+                <div className="l">Ads pagos</div>
+              </div>
+            </div>
+            <div className="legend">
+              {segs.map((s, i) => (
+                <div key={i} className={`lg ${['a','b','c','d'][i]}`}>
+                  <div className="n">{s.l}</div>
+                  <div className="v">{s.v}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="panel panel-table" style={{marginBottom: 16}}>
+          <div className="pt-head">
+            <div>
+              <h3>Arranjos mais vendidos</h3>
+              <div className="sub">Top 5 do período · Abr 2026</div>
+            </div>
+            <div style={{display: 'flex', gap: 10}}>
+              <div className="tbl-search">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                Buscar
+              </div>
+              <button className="btn-invoice">Exportar ▾</button>
+              <button className="btn-new">+ Novo produto</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style={{width: 30}}><input type="checkbox"/></th>
+                <th>Produto</th>
+                <th>Preço</th>
+                <th>Vendas</th>
+                <th>Comprador recente</th>
+                <th>Estoque</th>
+                <th style={{textAlign: 'right'}}>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topProducts.map((p, i) => (
+                <tr key={i}>
+                  <td><input type="checkbox"/></td>
+                  <td>
+                    <div className="prod-cell">
+                      <div className="prod-img"><img src={p.img} alt={p.n}/></div>
+                      <div>
+                        <div style={{fontWeight: 500, color: 'var(--ink-900)'}}>{p.n}</div>
+                        <div style={{fontSize: 12, color: 'var(--ink-500)'}}>{p.cat}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 500}}>R$ {p.p}</td>
+                  <td>{p.s.toLocaleString('pt-BR')}</td>
+                  <td>
+                    <div className="buyer">
+                      <div className="av"></div>
+                      <div>
+                        <div style={{color: 'var(--ink-900)'}}>{p.buyer.n}</div>
+                        <div className="em">{p.buyer.em}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`stock-pill stock-${p.stock}`}>
+                      <span style={{width: 5, height: 5, borderRadius: '50%', background: 'currentColor'}}></span>
+                      {p.sl}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="row-actions" style={{justifyContent: 'flex-end'}}>
+                      <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
+                      <button style={{color: 'var(--petal-600)'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg></button>
+                      <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

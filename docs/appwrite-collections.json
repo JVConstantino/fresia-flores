@@ -1,0 +1,299 @@
+{
+  "databaseId": "fresia",
+  "name": "Fresia",
+  "collections": [
+    {
+      "$id": "products",
+      "name": "Products",
+      "attributes": [
+        { "key": "name", "type": "string", "size": 255, "required": true },
+        { "key": "slug", "type": "string", "size": 255, "required": true },
+        { "key": "description", "type": "string", "size": 5000, "required": false },
+        { "key": "price", "type": "double", "required": true },
+        { "key": "stock", "type": "integer", "required": true },
+        { "key": "images", "type": "string", "size": 2000, "required": true },
+        { "key": "isActive", "type": "boolean", "required": true },
+        { "key": "categoryId", "type": "string", "size": 36, "required": true }
+      ],
+      "indexes": [
+        { "key": "slug", "type": "unique", "attributes": ["slug"] },
+        { "key": "categoryId_idx", "type": "key", "attributes": ["categoryId"] }
+      ]
+    },
+    {
+      "$id": "product_variants",
+      "name": "Product Variants",
+      "attributes": [
+        { "key": "productId", "type": "string", "size": 36, "required": true },
+        { "key": "name", "type": "string", "size": 255, "required": true },
+        { "key": "price", "type": "double", "required": true },
+        { "key": "stock", "type": "integer", "required": true }
+      ],
+      "indexes": [
+        { "key": "productId_idx", "type": "key", "attributes": ["productId"] }
+      ]
+    },
+    {
+      "$id": "categories",
+      "name": "Categories",
+      "attributes": [
+        { "key": "name", "type": "string", "size": 255, "required": true },
+        { "key": "slug", "type": "string", "size": 255, "required": true },
+        { "key": "parentId", "type": "string", "size": 36, "required": false }
+      ],
+      "indexes": [
+        { "key": "slug", "type": "unique", "attributes": ["slug"] }
+      ]
+    },
+    {
+      "$id": "orders",
+      "name": "Orders",
+      "attributes": [
+        { "key": "userId", "type": "string", "size": 36, "required": true },
+        { "key": "status", "type": "string", "size": 20, "required": true },
+        { "key": "paymentStatus", "type": "string", "size": 20, "required": true },
+        { "key": "paymentMethod", "type": "string", "size": 20, "required": true },
+        { "key": "total", "type": "double", "required": true },
+        { "key": "discount", "type": "double", "required": true },
+        { "key": "couponId", "type": "string", "size": 36, "required": false },
+        { "key": "deliveryMethod", "type": "string", "size": 20, "required": true },
+        { "key": "deliveryFee", "type": "double", "required": true },
+        { "key": "deliveryMessage", "type": "string", "size": 500, "required": false },
+        { "key": "neighborhoodId", "type": "string", "size": 36, "required": false },
+        { "key": "customerName", "type": "string", "size": 255, "required": true },
+        { "key": "customerEmail", "type": "string", "size": 255, "required": true },
+        { "key": "customerPhone", "type": "string", "size": 20, "required": false },
+        { "key": "customerCpf", "type": "string", "size": 14, "required": false },
+        { "key": "items", "type": "string", "size": 5000, "required": true },
+        { "key": "trackingCode", "type": "string", "size": 50, "required": false }
+      ],
+      "indexes": [
+        { "key": "userId_idx", "type": "key", "attributes": ["userId"] },
+        { "key": "status_idx", "type": "key", "attributes": ["status"] }
+      ]
+    },
+    {
+      "$id": "customers",
+      "name": "Customers",
+      "attributes": [
+        { "key": "userId", "type": "string", "size": 36, "required": true },
+        { "key": "name", "type": "string", "size": 255, "required": true },
+        { "key": "email", "type": "string", "size": 255, "required": true },
+        { "key": "ltv", "type": "double", "required": true },
+        { "key": "segment", "type": "string", "size": 20, "required": true },
+        { "key": "notes", "type": "string", "size": 5000, "required": false },
+        { "key": "totalOrders", "type": "integer", "required": true },
+        { "key": "lastOrderAt", "type": "datetime", "required": false }
+      ],
+      "indexes": [
+        { "key": "userId", "type": "unique", "attributes": ["userId"] },
+        { "key": "segment_idx", "type": "key", "attributes": ["segment"] }
+      ]
+    },
+    {
+      "$id": "inventory_movements",
+      "name": "Inventory Movements",
+      "attributes": [
+        { "key": "productId", "type": "string", "size": 36, "required": true },
+        { "key": "variantId", "type": "string", "size": 36, "required": false },
+        { "key": "type", "type": "string", "size": 20, "required": true },
+        { "key": "qty", "type": "integer", "required": true },
+        { "key": "reason", "type": "string", "size": 500, "required": true },
+        { "key": "orderId", "type": "string", "size": 36, "required": false },
+        { "key": "userId", "type": "string", "size": 36, "required": true }
+      ],
+      "indexes": [
+        { "key": "productId_created_idx", "type": "key", "attributes": ["productId", "$createdAt"] }
+      ]
+    },
+    {
+      "$id": "audit_logs",
+      "name": "Audit Logs",
+      "attributes": [
+        { "key": "userId", "type": "string", "size": 36, "required": true },
+        { "key": "action", "type": "string", "size": 20, "required": true },
+        { "key": "entity", "type": "string", "size": 50, "required": true },
+        { "key": "entityId", "type": "string", "size": 36, "required": true },
+        { "key": "diff", "type": "string", "size": 5000, "required": false },
+        { "key": "ip", "type": "string", "size": 45, "required": false }
+      ],
+      "indexes": [
+        { "key": "userId_created_idx", "type": "key", "attributes": ["userId", "$createdAt"] },
+        { "key": "entity_idx", "type": "key", "attributes": ["entity", "entityId"] }
+      ]
+    },
+    {
+      "$id": "notifications",
+      "name": "Notifications",
+      "attributes": [
+        { "key": "userId", "type": "string", "size": 36, "required": true },
+        { "key": "type", "type": "string", "size": 30, "required": true },
+        { "key": "message", "type": "string", "size": 1000, "required": true },
+        { "key": "read", "type": "boolean", "required": true },
+        { "key": "entityType", "type": "string", "size": 50, "required": false },
+        { "key": "entityId", "type": "string", "size": 36, "required": false }
+      ],
+      "indexes": [
+        { "key": "userId_read_idx", "type": "key", "attributes": ["userId", "read"] }
+      ]
+    },
+    {
+      "$id": "banners",
+      "name": "Banners",
+      "attributes": [
+        { "key": "title", "type": "string", "size": 255, "required": true },
+        { "key": "subtitle", "type": "string", "size": 255, "required": false },
+        { "key": "image", "type": "string", "size": 500, "required": true },
+        { "key": "ctaText", "type": "string", "size": 100, "required": false },
+        { "key": "ctaLink", "type": "string", "size": 500, "required": false },
+        { "key": "isActive", "type": "boolean", "required": true },
+        { "key": "order", "type": "integer", "required": true }
+      ],
+      "indexes": [
+        { "key": "active_order_idx", "type": "key", "attributes": ["isActive", "order"] }
+      ]
+    },
+    {
+      "$id": "top_bar",
+      "name": "Top Bar",
+      "attributes": [
+        { "key": "text", "type": "string", "size": 255, "required": true },
+        { "key": "activeFrom", "type": "datetime", "required": false },
+        { "key": "activeTo", "type": "datetime", "required": false },
+        { "key": "isActive", "type": "boolean", "required": true }
+      ]
+    },
+    {
+      "$id": "popups",
+      "name": "Popups",
+      "attributes": [
+        { "key": "title", "type": "string", "size": 255, "required": true },
+        { "key": "body", "type": "string", "size": 1000, "required": false },
+        { "key": "ctaText", "type": "string", "size": 100, "required": false },
+        { "key": "ctaLink", "type": "string", "size": 500, "required": false },
+        { "key": "image", "type": "string", "size": 500, "required": false },
+        { "key": "event", "type": "string", "size": 20, "required": true },
+        { "key": "delay", "type": "integer", "required": false },
+        { "key": "frequency", "type": "string", "size": 30, "required": true },
+        { "key": "isActive", "type": "boolean", "required": true }
+      ]
+    },
+    {
+      "$id": "addresses",
+      "name": "Addresses",
+      "attributes": [
+        { "key": "userId", "type": "string", "size": 36, "required": true },
+        { "key": "street", "type": "string", "size": 255, "required": true },
+        { "key": "number", "type": "string", "size": 20, "required": true },
+        { "key": "complement", "type": "string", "size": 255, "required": false },
+        { "key": "neighborhood", "type": "string", "size": 255, "required": true },
+        { "key": "city", "type": "string", "size": 255, "required": true },
+        { "key": "state", "type": "string", "size": 2, "required": true },
+        { "key": "zip", "type": "string", "size": 10, "required": true },
+        { "key": "isDefault", "type": "boolean", "required": false }
+      ],
+      "indexes": [
+        { "key": "userId_idx", "type": "key", "attributes": ["userId"] }
+      ]
+    },
+    {
+      "$id": "webhooks",
+      "name": "Webhooks",
+      "attributes": [
+        { "key": "name", "type": "string", "size": 255, "required": true },
+        { "key": "url", "type": "string", "size": 500, "required": true },
+        { "key": "events", "type": "string", "size": 1000, "required": true },
+        { "key": "secret", "type": "string", "size": 255, "required": false },
+        { "key": "isActive", "type": "boolean", "required": true },
+        { "key": "maxRetries", "type": "integer", "required": true }
+      ]
+    },
+    {
+      "$id": "webhook_logs",
+      "name": "Webhook Logs",
+      "attributes": [
+        { "key": "webhookId", "type": "string", "size": 36, "required": true },
+        { "key": "event", "type": "string", "size": 50, "required": true },
+        { "key": "payload", "type": "string", "size": 5000, "required": true },
+        { "key": "statusCode", "type": "integer", "required": false },
+        { "key": "response", "type": "string", "size": 2000, "required": false },
+        { "key": "success", "type": "boolean", "required": true },
+        { "key": "attempt", "type": "integer", "required": true }
+      ],
+      "indexes": [
+        { "key": "webhookId_idx", "type": "key", "attributes": ["webhookId", "$createdAt"] }
+      ]
+    },
+    {
+      "$id": "newsletter",
+      "name": "Newsletter",
+      "attributes": [
+        { "key": "email", "type": "string", "size": 255, "required": true }
+      ]
+    },
+    {
+      "$id": "testimonials",
+      "name": "Testimonials",
+      "attributes": [
+        { "key": "clientName", "type": "string", "size": 255, "required": true },
+        { "key": "rating", "type": "integer", "required": true },
+        { "key": "text", "type": "string", "size": 2000, "required": true },
+        { "key": "isActive", "type": "boolean", "required": true }
+      ]
+    },
+    {
+      "$id": "cities",
+      "name": "Cities",
+      "attributes": [
+        { "key": "name", "type": "string", "size": 255, "required": true },
+        { "key": "state", "type": "string", "size": 2, "required": true }
+      ]
+    },
+    {
+      "$id": "neighborhoods",
+      "name": "Neighborhoods",
+      "attributes": [
+        { "key": "cityId", "type": "string", "size": 36, "required": true },
+        { "key": "name", "type": "string", "size": 255, "required": true },
+        { "key": "deliveryFee", "type": "double", "required": true },
+        { "key": "isActive", "type": "boolean", "required": true }
+      ]
+    },
+    {
+      "$id": "coupons",
+      "name": "Coupons",
+      "attributes": [
+        { "key": "code", "type": "string", "size": 50, "required": true },
+        { "key": "discountType", "type": "string", "size": 20, "required": true },
+        { "key": "discountValue", "type": "double", "required": true },
+        { "key": "minOrderValue", "type": "double", "required": false },
+        { "key": "maxUses", "type": "integer", "required": false },
+        { "key": "currentUses", "type": "integer", "required": true },
+        { "key": "isActive", "type": "boolean", "required": true }
+      ]
+    },
+    {
+      "$id": "promotions",
+      "name": "Promotions",
+      "attributes": [
+        { "key": "name", "type": "string", "size": 255, "required": true },
+        { "key": "discountType", "type": "string", "size": 20, "required": true },
+        { "key": "discountValue", "type": "double", "required": true },
+        { "key": "validFrom", "type": "datetime", "required": true },
+        { "key": "validTo", "type": "datetime", "required": true },
+        { "key": "isActive", "type": "boolean", "required": true }
+      ]
+    },
+    {
+      "$id": "settings",
+      "name": "Settings",
+      "attributes": [
+        { "key": "key", "type": "string", "size": 255, "required": true },
+        { "key": "value", "type": "string", "size": 5000, "required": true }
+      ],
+      "indexes": [
+        { "key": "key", "type": "unique", "attributes": ["key"] }
+      ]
+    }
+  ]
+}

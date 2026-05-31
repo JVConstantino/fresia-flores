@@ -1,0 +1,4 @@
+ALTER TABLE `Product`
+  ADD COLUMN `shortDescription` VARCHAR(191) NULL,
+  ADD COLUMN `isFeatured` BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN `allowCoupons` BOOLEAN NOT NULL DEFAULT true;

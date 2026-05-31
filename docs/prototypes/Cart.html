@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Sacola — Frésia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  .cart-head { padding: 24px 0 16px; }
+  .cart-head h1 { font-size: clamp(40px, 4vw, 52px); }
+  .cart-head h1 em { color: var(--lilac-600); font-style: italic; font-weight: 400; }
+  .cart-head p { color: var(--ink-500); font-size: 14px; margin-top: 8px; }
+
+  .steps {
+    display: flex; gap: 12px;
+    padding: 18px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .step { display: flex; align-items: center; gap: 12px; color: var(--ink-400); font-size: 13px; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--ink-100); color: var(--ink-500); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+  .step.active { color: var(--ink-900); }
+  .step.active .step-num { background: var(--ink-900); color: white; }
+  .step.done .step-num { background: var(--leaf-500); color: white; }
+  .step.done { color: var(--ink-700); }
+  .step-line { width: 40px; height: 1px; background: var(--border); }
+
+  .cart-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .cart-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+  }
+  .cart-section-title {
+    font-size: 12px; font-weight: 600; color: var(--ink-900);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .cart-section-title .items { color: var(--ink-500); font-weight: 500; text-transform: none; letter-spacing: 0; font-size: 13px; }
+
+  .cart-item {
+    display: grid;
+    grid-template-columns: 92px 1fr auto;
+    gap: 20px;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cart-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .cart-item:first-child { padding-top: 0; }
+  .ci-img { width: 92px; height: 92px; border-radius: var(--radius-md); overflow: hidden; background: var(--ink-100); }
+  .ci-img img { width: 100%; height: 100%; object-fit: cover; }
+  .ci-name { font-size: 15px; font-weight: 500; color: var(--ink-900); margin-bottom: 4px; }
+  .ci-opt { font-size: 12px; color: var(--ink-500); margin-bottom: 10px; }
+  .ci-actions { display: flex; gap: 16px; font-size: 13px; }
+  .ci-actions a { color: var(--ink-500); display: inline-flex; align-items: center; gap: 6px; }
+  .ci-actions a:hover { color: var(--ink-900); }
+  .ci-actions .rem:hover { color: var(--petal-600); }
+  .ci-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .ci-price { font-family: var(--font-display); font-size: 20px; color: var(--ink-900); font-weight: 500; }
+  .qty { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-pill); overflow: hidden; }
+  .qty button { width: 32px; height: 32px; color: var(--ink-700); }
+  .qty button:hover { background: var(--ink-100); color: var(--ink-900); }
+  .qty span { min-width: 32px; text-align: center; font-size: 14px; font-weight: 500; }
+
+  .gift-card {
+    background: linear-gradient(135deg, var(--petal-50), var(--lilac-50));
+    border: 1px solid var(--lilac-200);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex; gap: 18px; align-items: center;
+    margin-top: 16px;
+  }
+  .gift-icon { width: 48px; height: 48px; border-radius: 50%; background: white; color: var(--petal-500); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .gift-card strong { display: block; font-size: 14px; color: var(--ink-900); margin-bottom: 4px; }
+  .gift-card span { font-size: 12px; color: var(--ink-600); }
+  .gift-card .btn { margin-left: auto; padding: 10px 18px; background: white; border: 1px solid var(--ink-900); color: var(--ink-900); }
+  .gift-card .btn:hover { background: var(--ink-900); color: white; }
+
+  /* Sidebar summary */
+  .summary-wrap { position: sticky; top: 88px; display: flex; flex-direction: column; gap: 16px; }
+  .summary {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+  }
+  .summary h3 { font-family: var(--font-sans); font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+  .promo-row { display: flex; gap: 8px; margin-bottom: 20px; }
+  .promo-row .input { padding: 12px 14px; font-size: 13px; }
+  .promo-row button { padding: 12px 18px; background: var(--ink-100); color: var(--ink-900); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; }
+  .promo-row button:hover { background: var(--ink-200); }
+
+  .sum-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; color: var(--ink-700); }
+  .sum-row.disc { color: var(--leaf-600); }
+  .sum-row.total { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 18px; font-size: 15px; color: var(--ink-900); font-weight: 500; }
+  .sum-row.total .val { font-family: var(--font-display); font-size: 28px; font-weight: 500; }
+
+  .sum-deliver {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--leaf-50);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--leaf-600);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .sum-deliver .icon { flex-shrink: 0; margin-top: 1px; }
+
+  .checkout-btn {
+    width: 100%;
+    padding: 18px;
+    background: var(--ink-900); color: white;
+    border-radius: var(--radius-pill);
+    font-weight: 500; font-size: 15px;
+    margin-top: 22px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.2s;
+  }
+  .checkout-btn:hover { background: var(--ink-800); box-shadow: var(--shadow-lg); }
+
+  .pay-badges { display: flex; gap: 10px; justify-content: center; margin-top: 18px; color: var(--ink-400); }
+  .pay-badges .pb { padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
+
+  /* You might like */
+  .recommend { margin-top: 64px; }
+  .rec-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
+  .rec-head h2 { font-size: 28px; }
+  .rec-head h2 em { color: var(--lilac-600); font-style: italic; font-weight: 400; }
+  .rec-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .rec-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; }
+  .rec-card:hover { box-shadow: var(--shadow-md); }
+  .rec-img { aspect-ratio: 1; background: var(--ink-100); overflow: hidden; }
+  .rec-img img { width: 100%; height: 100%; object-fit: cover; }
+  .rec-body { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .rec-name { font-size: 14px; color: var(--ink-900); }
+  .rec-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .rec-price { font-family: var(--font-display); font-size: 16px; font-weight: 500; }
+  .rec-add { font-size: 12px; padding: 6px 14px; border: 1px solid var(--ink-900); border-radius: 999px; color: var(--ink-900); }
+  .rec-add:hover { background: var(--ink-900); color: white; }
+
+  @media (max-width: 900px) {
+    .cart-layout { grid-template-columns: 1fr; }
+    .rec-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="assets/shared.js"></script>
+<script type="text/babel">
+  const { useState } = React;
+
+  const initial = [
+    { name: 'Buquê Primavera em Pêssego', opt: 'Tamanho Médio · Paleta Pêssego', price: 329, qty: 1, img: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=300&q=80' },
+    { name: 'Peônias Blush',              opt: 'Tamanho Pequeno · Blush',         price: 420, qty: 1, img: 'https://images.unsplash.com/photo-1533616688419-b7a585564566?w=300&q=80' },
+    { name: 'Orquídea Phalaenopsis',      opt: 'Vaso cerâmica · Branco',          price: 249, qty: 1, img: 'https://images.unsplash.com/photo-1558005137-d9619a5c539f?w=300&q=80' },
+  ];
+
+  const recs = [
+    { name: 'Rosas Vintage',  price: 259, img: 'https://images.unsplash.com/photo-1455659817273-f96807779a8a?w=400&q=80' },
+    { name: 'Nuvem Lavanda',  price: 289, img: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=400&q=80' },
+    { name: 'Jardim Secreto', price: 345, img: 'https://images.unsplash.com/photo-1469259943454-aa100abba749?w=400&q=80' },
+    { name: 'Frésia Coleção', price: 219, img: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&q=80' },
+  ];
+
+  const money = n => 'R$ ' + n.toFixed(2).replace('.', ',');
+
+  const App = () => {
+    const [items, setItems] = useState(initial);
+    const [promo, setPromo] = useState('');
+    const [promoOk, setPromoOk] = useState(false);
+
+    const sub = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const disc = promoOk ? sub * 0.1 : 0;
+    const ship = sub >= 300 ? 0 : 24.9;
+    const total = sub - disc + ship;
+
+    const setQty = (i, d) => setItems(x => x.map((it, idx) => idx === i ? { ...it, qty: Math.max(1, it.qty + d) } : it));
+    const remove = (i) => setItems(x => x.filter((_, idx) => idx !== i));
+
+    return (
+      <div className="page-wrap">
+        <FresiaHeader cartCount={items.length} activePage="shop" />
+        <main>
+          <div className="container">
+            <div className="breadcrumb">
+              <a href="Home.html">Início</a>
+              <span className="sep">/</span>
+              <span className="current">Sacola</span>
+            </div>
+
+            <div className="cart-head">
+              <h1>Sua <em>sacola</em></h1>
+              <p>{items.length} arranjos prontos para serem entregues com cuidado.</p>
+            </div>
+
+            <div className="steps">
+              <div className="step active"><span className="step-num">1</span>Sacola</div>
+              <div className="step-line"></div>
+              <div className="step"><span className="step-num">2</span>Entrega</div>
+              <div className="step-line"></div>
+              <div className="step"><span className="step-num">3</span>Pagamento</div>
+              <div className="step-line"></div>
+              <div className="step"><span className="step-num">4</span>Confirmação</div>
+            </div>
+
+            <div className="cart-layout">
+              <div>
+                <div className="cart-card">
+                  <div className="cart-section-title">
+                    Itens na sacola
+                    <span className="items">{items.length} arranjos · {items.reduce((s, i) => s + i.qty, 0)} unidades</span>
+                  </div>
+                  {items.map((it, i) => (
+                    <div key={i} className="cart-item">
+                      <div className="ci-img"><img src={it.img} alt={it.name} /></div>
+                      <div>
+                        <div className="ci-name">{it.name}</div>
+                        <div className="ci-opt">{it.opt}</div>
+                        <div className="ci-actions">
+                          <a href="#"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg> Favoritar</a>
+                          <a className="rem" onClick={() => remove(i)}><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg> Remover</a>
+                        </div>
+                      </div>
+                      <div className="ci-right">
+                        <div className="ci-price">{money(it.price * it.qty)}</div>
+                        <div className="qty">
+                          <button onClick={() => setQty(i, -1)}><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+                          <span>{it.qty}</span>
+                          <button onClick={() => setQty(i, 1)}><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="gift-card">
+                  <span className="gift-icon"><svg className="icon" viewBox="0 0 24 24"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
+                  <div>
+                    <strong>Presente especial?</strong>
+                    <span>Adicione um cartão escrito à mão e embrulho premium · +R$ 19,90</span>
+                  </div>
+                  <button className="btn">Adicionar →</button>
+                </div>
+              </div>
+
+              <div className="summary-wrap">
+                <div className="summary">
+                  <h3>Resumo do pedido</h3>
+                  <div className="promo-row">
+                    <input className="input" placeholder="Cupom de desconto" value={promo} onChange={e => setPromo(e.target.value)} />
+                    <button onClick={() => setPromoOk(!!promo)}>Aplicar</button>
+                  </div>
+
+                  <div className="sum-row"><span>Subtotal</span><span>{money(sub)}</span></div>
+                  {promoOk && <div className="sum-row disc"><span>Desconto (PRIMAVERA10)</span><span>–{money(disc)}</span></div>}
+                  <div className="sum-row"><span>Frete · Expresso SP</span><span>{ship === 0 ? 'Grátis' : money(ship)}</span></div>
+                  <div className="sum-row total"><span>Total</span><span className="val">{money(total)}</span></div>
+
+                  <div className="sum-deliver">
+                    <svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7zM5.5 18.5a2.5 2.5 0 1 0 0 0M18.5 18.5a2.5 2.5 0 1 0 0 0"/></svg>
+                    <div>
+                      <strong style={{display: 'block', marginBottom: 2}}>Entrega hoje em SP capital</strong>
+                      Pedidos confirmados até 14h chegam até 19h.
+                    </div>
+                  </div>
+
+                  <button className="checkout-btn">
+                    Finalizar compra
+                    <svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                  </button>
+
+                  <div className="pay-badges">
+                    <span className="pb">PIX</span>
+                    <span className="pb">VISA</span>
+                    <span className="pb">MASTER</span>
+                    <span className="pb">ELO</span>
+                  </div>
+                </div>
+
+                <div style={{background: 'var(--ink-50)', padding: 18, borderRadius: 'var(--radius-md)', fontSize: 12, color: 'var(--ink-600)', lineHeight: 1.6}}>
+                  <strong style={{color: 'var(--ink-900)', display: 'block', marginBottom: 4}}>Garantia Frésia ✿</strong>
+                  Se não ficar feliz com o arranjo, reembolsamos 100%. Sem perguntas.
+                </div>
+              </div>
+            </div>
+
+            <section className="recommend">
+              <div className="rec-head">
+                <h2>Combine com <em>estes</em></h2>
+                <a href="Store.html" style={{fontSize: 13, color: 'var(--ink-600)'}}>Ver loja →</a>
+              </div>
+              <div className="rec-grid">
+                {recs.map((r, i) => (
+                  <a href="Product.html" key={i} className="rec-card">
+                    <div className="rec-img"><img src={r.img} alt={r.name}/></div>
+                    <div className="rec-body">
+                      <div className="rec-name">{r.name}</div>
+                      <div className="rec-foot">
+                        <div className="rec-price">{money(r.price)}</div>
+                        <span className="rec-add">+ Sacola</span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          </div>
+        </main>
+        <FresiaFooter />
+      </div>
+    );
+  };
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

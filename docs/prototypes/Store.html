@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Loja — Frésia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shared.css" />
+<style>
+  .store-head {
+    padding: 32px 0 24px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px;
+  }
+  .store-head h1 { font-size: clamp(40px, 4vw, 56px); }
+  .store-head h1 em { color: var(--lilac-600); font-style: italic; font-weight: 400; }
+  .store-head p { color: var(--ink-500); font-size: 14px; margin-top: 6px; max-width: 420px; }
+
+  .chips-row {
+    display: flex; gap: 10px; overflow-x: auto; padding: 12px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+  .chip {
+    padding: 10px 18px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    color: var(--ink-700);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--ink-500); }
+  .chip.active { background: var(--ink-900); color: white; border-color: var(--ink-900); }
+  .chip-count { color: var(--ink-400); margin-left: 6px; font-size: 12px; }
+  .chip.active .chip-count { color: rgba(255,255,255,0.6); }
+
+  .store-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* Sidebar */
+  .filters { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 88px; }
+  .filter-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+  }
+  .f-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .f-head h4 { font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: var(--ink-900); letter-spacing: 0.02em; margin: 0; }
+  .f-reset { font-size: 12px; color: var(--lilac-600); cursor: pointer; }
+  .f-reset:hover { color: var(--lilac-700); }
+
+  .price-display {
+    font-size: 12px; color: var(--ink-500); margin-bottom: 10px;
+  }
+  .price-histogram {
+    height: 48px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    margin-bottom: 10px;
+    padding: 0 2px;
+  }
+  .price-bar {
+    flex: 1;
+    background: var(--lilac-100);
+    border-radius: 2px;
+    transition: background 0.15s;
+  }
+  .price-bar.in { background: var(--lilac-400); }
+  .range-row {
+    position: relative;
+    height: 28px;
+    margin: 4px 0 12px;
+  }
+  .range-track {
+    position: absolute; top: 50%; left: 0; right: 0;
+    height: 4px; background: var(--ink-200); border-radius: 2px;
+    transform: translateY(-50%);
+  }
+  .range-fill {
+    position: absolute; top: 50%;
+    height: 4px; background: var(--ink-900); border-radius: 2px;
+    transform: translateY(-50%);
+  }
+  .range-thumb {
+    position: absolute; top: 50%;
+    width: 20px; height: 20px;
+    background: white;
+    border: 2px solid var(--ink-900);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: var(--shadow-sm);
+  }
+  .price-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-900); }
+  .price-labels .p-tag {
+    padding: 4px 10px;
+    background: var(--ink-900);
+    color: white;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  /* checkbox list */
+  .check-list { display: flex; flex-direction: column; gap: 12px; }
+  .check-item {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ink-700);
+  }
+  .check-item .colorbox { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border); background: white; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+  .check-item.checked .colorbox { background: var(--ink-900); border-color: var(--ink-900); color: white; }
+  .check-item .count { margin-left: auto; color: var(--ink-400); font-size: 12px; }
+
+  .color-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .color-swatch {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    position: relative;
+  }
+  .color-swatch.active { border-color: var(--ink-900); box-shadow: 0 0 0 2px white inset; }
+
+  /* Main content */
+  .content-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .results-count { font-size: 13px; color: var(--ink-500); }
+  .results-count b { color: var(--ink-900); font-weight: 500; }
+  .sort-row { display: flex; align-items: center; gap: 12px; }
+  .sort-select {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: white;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ink-700);
+    cursor: pointer;
+  }
+  .view-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 3px;
+    background: white;
+  }
+  .view-btn {
+    width: 34px; height: 34px;
+    border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--ink-500);
+  }
+  .view-btn.active { background: var(--ink-900); color: white; }
+
+  /* Product grid */
+  .p-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .p-card { background: white; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); transition: all 0.2s; display: block; }
+  .p-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .p-card-img { aspect-ratio: 1; background: var(--ink-100); position: relative; overflow: hidden; }
+  .p-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .p-card:hover .p-card-img img { transform: scale(1.06); }
+  .p-card-body { padding: 18px; }
+  .p-card-name { font-size: 15px; color: var(--ink-900); margin-bottom: 4px; font-weight: 500; }
+  .p-card-cat { font-size: 12px; color: var(--ink-500); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .p-card-cat .stars { color: var(--petal-500); display: inline-flex; gap: 1px; }
+  .p-card-foot { display: flex; align-items: center; justify-content: space-between; }
+  .p-card-price { font-family: var(--font-display); font-size: 20px; font-weight: 500; color: var(--ink-900); }
+  .p-card-price .old { font-size: 13px; color: var(--ink-400); text-decoration: line-through; margin-left: 6px; font-family: var(--font-sans); font-weight: 400; }
+  .p-card-add { width: 36px; height: 36px; border-radius: 50%; background: var(--ink-900); color: white; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .p-card-add:hover { background: var(--lilac-500); }
+  .p-card-fav { position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.92); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-700); }
+  .p-card-badge { position: absolute; top: 14px; left: 14px; }
+
+  .pagination {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    margin-top: 48px;
+  }
+  .pg {
+    min-width: 40px; height: 40px; padding: 0 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: white;
+    font-size: 13px;
+    color: var(--ink-700);
+  }
+  .pg.active { background: var(--ink-900); color: white; border-color: var(--ink-900); }
+  .pg:hover:not(.active) { border-color: var(--ink-500); }
+
+  @media (max-width: 900px) {
+    .store-layout { grid-template-columns: 1fr; }
+    .p-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="assets/shared.js"></script>
+<script type="text/babel">
+  const { useState } = React;
+
+  const chips = [
+    { n: 'Tudo', c: 142, a: true },
+    { n: 'Buquês', c: 42 },
+    { n: 'Peônias', c: 12 },
+    { n: 'Rosas', c: 28 },
+    { n: 'Orquídeas', c: 16 },
+    { n: 'Plantas', c: 24 },
+    { n: 'Silvestres', c: 18 },
+    { n: 'Frésias', c: 8 },
+    { n: 'Presentes', c: 14 },
+  ];
+
+  const occasions = [
+    { n: 'Aniversário', c: 62 },
+    { n: 'Agradecimento', c: 28 },
+    { n: 'Dia das Mães', c: 19 },
+    { n: 'Casamento', c: 34 },
+    { n: 'Condolências', c: 12 },
+    { n: 'Decoração', c: 41 },
+  ];
+
+  const colors = [
+    { n: 'Branco', bg: '#ffffff', b: '#d4c3ef' },
+    { n: 'Rosa',   bg: '#f5a98c' },
+    { n: 'Lilás',  bg: '#9b83e6' },
+    { n: 'Amarelo',bg: '#f4c860' },
+    { n: 'Vermelho',bg: '#d85a5a' },
+    { n: 'Verde',  bg: '#5a9e68' },
+    { n: 'Mix',    bg: 'conic-gradient(#9b83e6, #f5a98c, #f4c860, #5a9e68, #9b83e6)' },
+  ];
+
+  const products = [
+    { name: 'Buquê Primavera em Pêssego', cat: 'Mix autoral', rating: 4.8, reviews: 128, price: 'R$ 329', old: 'R$ 389', img: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=700&q=80', badge: 'Bestseller' },
+    { name: 'Nuvem Lavanda',              cat: 'Lilás & lavanda', rating: 4.9, reviews: 54,  price: 'R$ 289', img: 'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=700&q=80' },
+    { name: 'Peônias Blush',              cat: 'Peônias', rating: 4.9, reviews: 211,  price: 'R$ 420', img: 'https://images.unsplash.com/photo-1533616688419-b7a585564566?w=700&q=80', badge: 'Limitado' },
+    { name: 'Jardim Secreto',             cat: 'Mix silvestre', rating: 4.7, reviews: 89,   price: 'R$ 345', img: 'https://images.unsplash.com/photo-1469259943454-aa100abba749?w=700&q=80', badge: 'Novo' },
+    { name: 'Campo de Margaridas',        cat: 'Flores do campo', rating: 4.8, reviews: 67, price: 'R$ 198', img: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=700&q=80' },
+    { name: 'Rosas Vintage',              cat: 'Rosas', rating: 4.9, reviews: 312,         price: 'R$ 259', old: 'R$ 299', img: 'https://images.unsplash.com/photo-1455659817273-f96807779a8a?w=700&q=80', badge: 'Oferta' },
+    { name: 'Orquídea Phalaenopsis',      cat: 'Orquídeas', rating: 4.7, reviews: 44,       price: 'R$ 249', img: 'https://images.unsplash.com/photo-1558005137-d9619a5c539f?w=700&q=80' },
+    { name: 'Frésia Coleção',             cat: 'Frésias', rating: 4.8, reviews: 92,         price: 'R$ 219', img: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=700&q=80' },
+    { name: 'Tulipas Holandesas',         cat: 'Tulipas', rating: 4.7, reviews: 38,         price: 'R$ 189', img: 'https://images.unsplash.com/photo-1520763185298-1b434c919102?w=700&q=80' },
+  ];
+
+  const App = () => {
+    const [activeChip, setActiveChip] = useState(0);
+    const [occ, setOcc] = useState([0, 2, 3]);
+    const [color, setColor] = useState([1, 2]);
+    const [view, setView] = useState('grid');
+
+    const toggleOcc = (i) => setOcc(o => o.includes(i) ? o.filter(x => x !== i) : [...o, i]);
+    const toggleColor = (i) => setColor(c => c.includes(i) ? c.filter(x => x !== i) : [...c, i]);
+
+    // Price histogram data
+    const hist = [4, 7, 12, 18, 24, 28, 22, 19, 15, 11, 8, 5, 3, 2];
+
+    return (
+      <div className="page-wrap">
+        <FresiaHeader cartCount={3} activePage="shop" />
+        <main>
+          <div className="container">
+            <div className="breadcrumb">
+              <a href="Home.html">Início</a>
+              <span className="sep">/</span>
+              <span className="current">Loja</span>
+            </div>
+
+            <div className="store-head">
+              <div>
+                <h1>Nossa <em>coleção</em></h1>
+                <p>142 arranjos disponíveis — colhidos hoje, entregues frescos.</p>
+              </div>
+              <div style={{display: 'flex', gap: 10}}>
+                <button className="btn btn-ghost"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M3 6h18M6 12h12M10 18h4"/></svg> Filtros</button>
+              </div>
+            </div>
+
+            <div className="chips-row">
+              {chips.map((c, i) => (
+                <button key={i} className={`chip ${activeChip === i ? 'active' : ''}`} onClick={() => setActiveChip(i)}>
+                  {c.n}<span className="chip-count">{c.c}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="store-layout">
+              <aside className="filters">
+                <div className="filter-card">
+                  <div className="f-head">
+                    <h4>Faixa de preço</h4>
+                    <span className="f-reset">Reset</span>
+                  </div>
+                  <div className="price-display">Média: <b style={{color: 'var(--ink-900)'}}>R$ 286</b></div>
+                  <div className="price-histogram">
+                    {hist.map((h, i) => (
+                      <div key={i} className={`price-bar ${i >= 2 && i <= 10 ? 'in' : ''}`} style={{height: `${h * 1.8}px`}}></div>
+                    ))}
+                  </div>
+                  <div className="range-row">
+                    <div className="range-track"></div>
+                    <div className="range-fill" style={{left: '15%', right: '25%'}}></div>
+                    <div className="range-thumb" style={{left: '15%'}}></div>
+                    <div className="range-thumb" style={{left: '75%'}}></div>
+                  </div>
+                  <div className="price-labels">
+                    <span className="p-tag">R$ 120</span>
+                    <span className="p-tag">R$ 520</span>
+                  </div>
+                </div>
+
+                <div className="filter-card">
+                  <div className="f-head"><h4>Ocasião</h4><span className="f-reset">Reset</span></div>
+                  <div className="check-list">
+                    {occasions.map((o, i) => (
+                      <div key={i} className={`check-item ${occ.includes(i) ? 'checked' : ''}`} onClick={() => toggleOcc(i)}>
+                        <span className="colorbox">
+                          {occ.includes(i) && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>}
+                        </span>
+                        <span>{o.n}</span>
+                        <span className="count">{o.c}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-card">
+                  <div className="f-head"><h4>Cor</h4><span className="f-reset">Reset</span></div>
+                  <div className="color-row">
+                    {colors.map((c, i) => (
+                      <div
+                        key={i}
+                        className={`color-swatch ${color.includes(i) ? 'active' : ''}`}
+                        style={{background: c.bg, borderColor: c.b || undefined}}
+                        title={c.n}
+                        onClick={() => toggleColor(i)}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-card">
+                  <div className="f-head"><h4>Entrega</h4></div>
+                  <div className="check-list">
+                    {[
+                      {n: 'Mesmo dia', c: 'SP capital'},
+                      {n: '24h', c: 'RMSP'},
+                      {n: 'Agendada', c: 'Escolha data'},
+                    ].map((o, i) => (
+                      <div key={i} className={`check-item ${i === 0 ? 'checked' : ''}`}>
+                        <span className="colorbox">
+                          {i === 0 && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>}
+                        </span>
+                        <span>{o.n}</span>
+                        <span className="count">{o.c}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-card" style={{background: 'var(--lilac-50)', borderColor: 'var(--lilac-200)'}}>
+                  <div style={{fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--lilac-800)', marginBottom: 8, lineHeight: 1.2}}>Ajuda com a escolha?</div>
+                  <div style={{fontSize: 13, color: 'var(--ink-700)', marginBottom: 16, lineHeight: 1.5}}>Responda 3 perguntas e sugerimos o arranjo perfeito.</div>
+                  <button className="btn btn-lilac" style={{padding: '10px 18px'}}>Começar quiz →</button>
+                </div>
+              </aside>
+
+              <section>
+                <div className="content-head">
+                  <div className="results-count">Mostrando <b>1–9</b> de <b>142</b> arranjos</div>
+                  <div className="sort-row">
+                    <select className="sort-select">
+                      <option>Ordenar: Em destaque</option>
+                      <option>Menor preço</option>
+                      <option>Maior preço</option>
+                      <option>Mais recentes</option>
+                      <option>Mais avaliados</option>
+                    </select>
+                    <div className="view-toggle">
+                      <button className={`view-btn ${view === 'grid' ? 'active' : ''}`} onClick={() => setView('grid')}>
+                        <svg className="icon icon-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                      </button>
+                      <button className={`view-btn ${view === 'list' ? 'active' : ''}`} onClick={() => setView('list')}>
+                        <svg className="icon icon-sm" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-grid">
+                  {products.map((p, i) => (
+                    <a href="Product.html" key={i} className="p-card">
+                      <div className="p-card-img">
+                        {p.badge && <span className={`badge ${p.badge === 'Oferta' ? 'badge-petal' : 'badge-lilac'} p-card-badge`}>{p.badge}</span>}
+                        <button className="p-card-fav" onClick={e => {e.preventDefault();}}>
+                          <svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        </button>
+                        <img src={p.img} alt={p.name} />
+                      </div>
+                      <div className="p-card-body">
+                        <div className="p-card-name">{p.name}</div>
+                        <div className="p-card-cat">
+                          <span className="stars">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.5 7 1-5 5 1.5 7-6.5-3.5L5.5 21.5 7 14.5 2 9.5l7-1z"/></svg>
+                          </span>
+                          {p.rating} ({p.reviews}) · {p.cat}
+                        </div>
+                        <div className="p-card-foot">
+                          <div className="p-card-price">{p.price}{p.old && <span className="old">{p.old}</span>}</div>
+                          <button className="p-card-add" onClick={e => {e.preventDefault();}}>
+                            <svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+
+                <div className="pagination">
+                  <button className="pg"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+                  <button className="pg active">1</button>
+                  <button className="pg">2</button>
+                  <button className="pg">3</button>
+                  <button className="pg">…</button>
+                  <button className="pg">16</button>
+                  <button className="pg"><svg className="icon icon-sm" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+        <FresiaFooter />
+      </div>
+    );
+  };
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

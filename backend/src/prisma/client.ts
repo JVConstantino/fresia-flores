@@ -49,7 +49,40 @@ function buildInsert(data: Record<string, any>) {
 
 function buildSet(data: Record<string, any>) {
   const keys = Object.keys(data)
-  return { setClause: keys.map(k => `\`${k}\` = ?`).join(', '), params: Object.values(data) }
+  return { setClause: keys.map(k => `\`${k}\` = ?`).join(', '), params: keys.map(k => data[k]) }
+}
+
+// Separa os campos escalares (vão para INSERT/UPDATE) das escritas aninhadas de
+// relações (create/createMany/connect/etc). Descarta `undefined` (semântica Prisma:
+// undefined = não informado → omitir; null = SQL NULL).
+function splitWrite(table: string, data: Record<string, any>) {
+  const rels = RELATIONS[table] || {}
+  const scalars: Record<string, any> = {}
+  const nested: Array<[string, any]> = []
+  for (const [k, v] of Object.entries(data || {})) {
+    if (v === undefined) continue
+    if (rels[k] && v !== null && typeof v === 'object') { nested.push([k, v]); continue }
+    scalars[k] = v
+  }
+  return { scalars, nested }
+}
+
+// Aplica escritas aninhadas (apenas o necessário: create/createMany em toMany).
+async function applyNestedWrites(table: string, parentId: any, nested: Array<[string, any]>) {
+  const rels = RELATIONS[table] || {}
+  for (const [key, ops] of nested) {
+    const rel = rels[key]
+    if (!rel || rel.kind !== 'toMany') continue
+    const lists: any[] = []
+    if (ops.createMany?.data) lists.push(...ops.createMany.data)
+    if (ops.create) lists.push(...(Array.isArray(ops.create) ? ops.create : [ops.create]))
+    for (const child of lists) {
+      const childData: Record<string, any> = { [rel.fk]: parentId }
+      for (const [ck, cv] of Object.entries(child)) if (cv !== undefined) childData[ck] = cv
+      const { cols, placeholders, params } = buildInsert(childData)
+      await execute(`INSERT INTO \`${rel.target}\` (${cols}) VALUES (${placeholders})`, params)
+    }
+  }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -260,17 +293,23 @@ function model(table: string) {
       return hydrate(table, rows as any[], args)
     },
     async create(args: { data: Record<string, any>; select?: any; include?: any }) {
-      const { cols, placeholders, params } = buildInsert(args.data)
+      const { scalars, nested } = splitWrite(table, args.data)
+      const { cols, placeholders, params } = buildInsert(scalars)
       const res = await execute(`INSERT INTO \`${table}\` (${cols}) VALUES (${placeholders})`, params)
+      await applyNestedWrites(table, res.insertId, nested)
       const row = await queryOne(`SELECT * FROM \`${table}\` WHERE id = ?`, [res.insertId])
       if (!row) return null
       return (await hydrate(table, [row], args))[0]
     },
     async update(args: { where: WhereClause; data: Record<string, any>; select?: any; include?: any }) {
-      const { setClause, params: sp } = buildSet(args.data)
-      const { sql, params: wp }       = buildWhere(args.where)
-      await execute(`UPDATE \`${table}\` SET ${setClause} WHERE ${sql}`, [...sp, ...wp])
+      const { scalars, nested } = splitWrite(table, args.data)
+      const { sql, params: wp } = buildWhere(args.where)
+      if (Object.keys(scalars).length) {
+        const { setClause, params: sp } = buildSet(scalars)
+        await execute(`UPDATE \`${table}\` SET ${setClause} WHERE ${sql}`, [...sp, ...wp])
+      }
       const row = await queryOne(`SELECT * FROM \`${table}\` WHERE ${sql}`, wp)
+      if (row && nested.length) await applyNestedWrites(table, (row as any).id, nested)
       if (!row) return null
       return (await hydrate(table, [row], args))[0]
     },

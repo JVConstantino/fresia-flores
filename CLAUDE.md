@@ -4,6 +4,16 @@
 > **Setup Appwrite:** ver `plan/appwrite-setup.md`
 > **Runbook:** ver `../../fresia-vault/04-bugs/server-runbook.md`
 
+## Ferramenta obrigatória — Understand-Anything (usar no início de cada sessão)
+- **Antes de começar a trabalhar em qualquer tarefa**, no início da sessão, usar o plugin
+  **Understand-Anything** para obter/atualizar o entendimento da base de código:
+  - Rodar `/understand` (gera/atualiza o grafo de conhecimento) **uma vez por sessão**.
+  - Consultar o grafo via `/understand-chat` / `/understand-dashboard` antes de planejar mudanças,
+    e `/understand-diff` ao avaliar impacto de uma alteração.
+- Não é necessário reanalisar a cada mensagem — apenas 1x por sessão (ou quando a base mudar
+  significativamente). Se o plugin não estiver instalado, instalar via
+  `/plugin marketplace add Lum1104/Understand-Anything` + `/plugin install understand-anything`.
+
 ## Comportamento esperado
 - Nunca peça confirmação para ações reversíveis (criar arquivo, instalar pacote)
 - Se houver ambiguidade, escolha a opção mais óbvia e documente a decisão

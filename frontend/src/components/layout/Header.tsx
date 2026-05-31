@@ -38,6 +38,7 @@ export function Header() {
             <a href="/" className="text-sm text-ink-500 hover:text-ink-800 transition-colors py-1 whitespace-nowrap">Início</a>
             <a href="/loja" className="text-sm text-ink-500 hover:text-ink-800 transition-colors py-1 whitespace-nowrap">Loja</a>
             <MegaMenu />
+            <a href="/presentes-para-hospitais-maternidades" className="text-sm text-ink-500 hover:text-ink-800 transition-colors py-1 whitespace-nowrap">Hospitais e Maternidades</a>
             <a href="/blog" className="text-sm text-ink-500 hover:text-ink-800 transition-colors py-1 whitespace-nowrap">Blog</a>
             <a href="/sobre" className="text-sm text-ink-500 hover:text-ink-800 transition-colors py-1 whitespace-nowrap">Sobre nós</a>
             <a href="/contato" className="text-sm text-ink-500 hover:text-ink-800 transition-colors py-1 whitespace-nowrap">Contato</a>
@@ -114,6 +115,7 @@ export function Header() {
             <nav className="mt-4 space-y-1">
               <a href="/" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Início</a>
               <a href="/loja" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Loja</a>
+              <a href="/presentes-para-hospitais-maternidades" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Hospitais e Maternidades</a>
               <a href="/blog" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Blog</a>
               <a href="/sobre" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Sobre nós</a>
               <a href="/contato" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Contato</a>

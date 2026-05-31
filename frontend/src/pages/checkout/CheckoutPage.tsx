@@ -8,6 +8,8 @@ import { CreditCardForm } from '@/components/features/CreditCardForm'
 import { PixPayment } from '@/components/features/PixPayment'
 import { AddressSelectorCards } from '@/components/checkout/AddressSelectorCards'
 import { CardWalletSelector } from '@/components/checkout/CardWalletSelector'
+import { HospitalDeliveryNotice } from '@/components/checkout/HospitalDeliveryNotice'
+import { looksLikeHospital } from '@/lib/hospitalKeywords'
 import { useCartStore, selectTotal } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import { useCheckoutStore } from '@/store/checkoutStore'
@@ -214,6 +216,11 @@ export function CheckoutPage() {
   const isStep1Valid = checkoutStore.name && checkoutStore.email && checkoutStore.cpf.length >= 11
   const isStep2Valid = checkoutStore.deliveryMethod === 'retirada' || (checkoutStore.cep && checkoutStore.addressNumber && selectedNeighborhood)
 
+  // Aviso de entrega em hospital: detecta palavras-chave no endereço informado
+  const isHospitalAddress = looksLikeHospital(
+    `${checkoutStore.address} ${checkoutStore.complement} ${selectedNeighborhood?.name ?? ''}`
+  )
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto px-5 py-10">
@@ -304,6 +311,8 @@ export function CheckoutPage() {
                   selectedAddressId={checkoutStore.selectedAddressId}
                   onSelectAddress={handleAddressSelected}
                 />
+
+                {isHospitalAddress && <HospitalDeliveryNotice />}
 
                 {/* Bairro auto-resolvido → mostrar frete */}
                 {selectedNeighborhood && (
@@ -417,6 +426,8 @@ export function CheckoutPage() {
                             <Input value={checkoutStore.complement} onChange={e => checkoutStore.setField('complement', e.target.value)} placeholder="Apto 45" />
                           </div>
                         </div>
+
+                        {isHospitalAddress && <HospitalDeliveryNotice />}
                         <div>
                           <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">Bairro de Entrega</label>
                           <select

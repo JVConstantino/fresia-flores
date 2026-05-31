@@ -5,6 +5,8 @@ import { StorePage } from '@/pages/store/StorePage'
 import { ProductPage } from '@/pages/store/ProductPage'
 import { AboutPage } from '@/pages/store/AboutPage'
 import { ContactPage } from '@/pages/store/ContactPage'
+import { HospitalGiftsPage } from '@/pages/store/HospitalGiftsPage'
+import { HospitalDeliveryPage } from '@/pages/store/HospitalDeliveryPage'
 import { CartPage } from '@/pages/CartPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
@@ -57,6 +59,8 @@ export default function App() {
       <Route path="/produto/:slug" element={<ProductPage />} />
       <Route path="/sobre" element={<AboutPage />} />
       <Route path="/contato" element={<ContactPage />} />
+      <Route path="/presentes-para-hospitais-maternidades" element={<HospitalGiftsPage />} />
+      <Route path="/entrega-em-hospitais" element={<HospitalDeliveryPage />} />
       <Route path="/carrinho" element={<Layout><CartPage /></Layout>} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/registro" element={<RegisterPage />} />

@@ -11,8 +11,13 @@
   - Consultar o grafo via `/understand-chat` / `/understand-dashboard` antes de planejar mudanças,
     e `/understand-diff` ao avaliar impacto de uma alteração.
 - Não é necessário reanalisar a cada mensagem — apenas 1x por sessão (ou quando a base mudar
-  significativamente). Se o plugin não estiver instalado, instalar via
-  `/plugin marketplace add Lum1104/Understand-Anything` + `/plugin install understand-anything`.
+  significativamente).
+- **Instalação neste ambiente** (o comando `/plugin` não está disponível aqui): o repo foi clonado
+  em `~/.understand-anything/repo` e as skills linkadas em `~/.claude/skills/understand*`
+  (carregam após reiniciar o Claude Code). Dependências: Node ≥ 22, Python 3, e `pnpm` via
+  corepack (shim em `~/.local/bin/pnpm`). O `pnpm install` + build do core já foram executados.
+  Em ambientes com `/plugin`, alternativamente: `/plugin marketplace add Lum1104/Understand-Anything`
+  + `/plugin install understand-anything`.
 
 ## Comportamento esperado
 - Nunca peça confirmação para ações reversíveis (criar arquivo, instalar pacote)

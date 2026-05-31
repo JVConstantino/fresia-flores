@@ -11,10 +11,15 @@ function buildWhere(where: WhereClause = {}): { sql: string; params: any[] } {
   const params: any[] = []
   for (const [key, val] of Object.entries(where)) {
     if (key === 'AND' || key === 'OR') {
-      const subs = (val as WhereClause[]).map(w => buildWhere(w))
+      const list = Array.isArray(val) ? val : [val]
+      const subs = (list as WhereClause[]).map(w => buildWhere(w))
       const joined = subs.map(s => `(${s.sql})`).join(key === 'AND' ? ' AND ' : ' OR ')
       if (joined) parts.push(joined)
       subs.forEach(s => params.push(...s.params))
+    } else if (key === 'NOT') {
+      const sub = buildWhere(val as WhereClause)
+      parts.push(`NOT (${sub.sql})`)
+      params.push(...sub.params)
     } else if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
       if ('contains'   in val) { parts.push(`\`${key}\` LIKE ?`);    params.push(`%${val.contains}%`) }
       else if ('startsWith' in val) { parts.push(`\`${key}\` LIKE ?`); params.push(`${val.startsWith}%`) }
@@ -23,7 +28,11 @@ function buildWhere(where: WhereClause = {}): { sql: string; params: any[] } {
       else if ('gte'  in val) { parts.push(`\`${key}\` >= ?`); params.push(val.gte) }
       else if ('lt'   in val) { parts.push(`\`${key}\` < ?`);  params.push(val.lt) }
       else if ('lte'  in val) { parts.push(`\`${key}\` <= ?`); params.push(val.lte) }
-      else if ('in'   in val) { parts.push(`\`${key}\` IN (?)`); params.push(val.in) }
+      else if ('in'   in val) {
+        const arr = Array.isArray(val.in) ? val.in : [val.in]
+        if (arr.length === 0) { parts.push('1=0') }
+        else { parts.push(`\`${key}\` IN (${arr.map(() => '?').join(',')})`); arr.forEach(v => params.push(v)) }
+      }
       else if ('not'  in val) { parts.push(`\`${key}\` != ?`); params.push(val.not) }
       else if ('equals' in val) { parts.push(`\`${key}\` = ?`); params.push(val.equals) }
     } else {

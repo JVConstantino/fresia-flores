@@ -15,7 +15,11 @@ interface CouponInput {
 function getStatus(coupon: { isActive: boolean; validFrom: Date; validTo: Date; maxUses: number | null; usedCount: number }): 'active' | 'expired' | 'inactive' | 'esgotado' {
   if (!coupon.isActive) return 'inactive'
   const now = new Date()
-  if (now < coupon.validFrom || now > coupon.validTo) return 'expired'
+  const validFrom = new Date(coupon.validFrom)
+  validFrom.setHours(0, 0, 0, 0)
+  const validTo = new Date(coupon.validTo)
+  validTo.setHours(23, 59, 59, 999)
+  if (now < validFrom || now > validTo) return 'expired'
   if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) return 'esgotado'
   return 'active'
 }
@@ -122,7 +126,11 @@ export const adminCouponService = {
     if (!coupon.isActive) throw Object.assign(new Error('Cupom inativo'), { statusCode: 400 })
 
     const now = new Date()
-    if (now < coupon.validFrom || now > coupon.validTo) throw Object.assign(new Error('Cupom expirado'), { statusCode: 400 })
+    const validFrom = new Date(coupon.validFrom)
+    validFrom.setHours(0, 0, 0, 0)
+    const validTo = new Date(coupon.validTo)
+    validTo.setHours(23, 59, 59, 999)
+    if (now < validFrom || now > validTo) throw Object.assign(new Error('Cupom expirado'), { statusCode: 400 })
     if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) throw Object.assign(new Error('Cupom esgotado'), { statusCode: 400 })
 
     const minValue = coupon.minOrderValue ? parseFloat(coupon.minOrderValue.toString()) : 0

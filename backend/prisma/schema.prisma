@@ -29,6 +29,7 @@ model User {
 model Address {
   id           Int     @id @default(autoincrement())
   userId       Int
+  label        String
   street       String
   number       String
   complement   String?
@@ -176,6 +177,7 @@ model Product {
   variants         ProductVariant[]
   wishlist         Wishlist[]
   promotions       Promotion[]      @relation("ProductToPromotion")
+  testimonials     Testimonial[]
 
   @@index([categoryId], map: "Product_categoryId_fkey")
 }
@@ -203,10 +205,18 @@ model Order {
   paymentMethod   String        @default("card")
   total           Decimal       @db.Decimal(10, 2)
   discount        Decimal?      @db.Decimal(10, 2)
+  deliveryFee     Decimal?      @db.Decimal(10, 2)
   couponId        Int?
   deliveryMessage String?       @db.Text
   deliveryMethod  String        @default("motoboy")
   neighborhoodId  Int?
+  street          String?       @db.Text
+  number          String?
+  complement      String?
+  zipCode         String?
+  neighborhoodName String?
+  city            String?
+  state           String?
   customerName    String
   customerEmail   String
   customerPhone   String?
@@ -270,10 +280,13 @@ model Testimonial {
   rating     Int
   text       String   @db.Text
   isActive   Boolean  @default(true)
+  productId  Int?
+  product    Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@index([isActive])
+  @@index([productId])
 }
 
 model NewsletterSubscription {

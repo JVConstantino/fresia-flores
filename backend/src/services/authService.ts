@@ -97,4 +97,35 @@ export const authService = {
     const passwordHash = await bcrypt.hash(newPassword, 12)
     await prisma.user.update({ where: { id: userId }, data: { passwordHash } })
   },
+
+  async forgotPassword(email: string): Promise<string> {
+    const user = await prisma.user.findUnique({ where: { email } })
+    const token = jwt.sign({ email, purpose: 'reset-password' }, JWT_SECRET, { expiresIn: '1h' })
+    // If staging/production domain is set in VITE_API_URL or config, we can map to it, but localhost is great for testing
+    const baseUrl = process.env.NODE_ENV === 'production' ? 'https://fresiaflores.com.br' : 'http://localhost:5173'
+    return `${baseUrl}/recuperar-senha?token=${token}`
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { email: string; purpose: string }
+      if (decoded.purpose !== 'reset-password') {
+        throw Object.assign(new Error('Token inválido'), { statusCode: 400 })
+      }
+      const user = await prisma.user.findUnique({ where: { email: decoded.email } })
+      if (!user) {
+        throw Object.assign(new Error('Usuário não encontrado'), { statusCode: 404 })
+      }
+      const passwordHash = await bcrypt.hash(newPassword, 12)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash }
+      })
+    } catch (err: any) {
+      if (err.name === 'TokenExpiredError') {
+        throw Object.assign(new Error('Token expirou'), { statusCode: 400 })
+      }
+      throw Object.assign(new Error('Token inválido ou expirado'), { statusCode: 400 })
+    }
+  },
 }

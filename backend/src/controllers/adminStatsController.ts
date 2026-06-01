@@ -76,4 +76,11 @@ router.get('/customer-metrics', async (req, res, next) => {
   } catch (e) { next(e) }
 })
 
+router.get('/advanced', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const days = parseInt((req.query.days as string) || '30')
+    res.json(await adminStatsService.getAdvancedAnalytics(days))
+  } catch (e) { next(e) }
+})
+
 export const adminStatsController = router

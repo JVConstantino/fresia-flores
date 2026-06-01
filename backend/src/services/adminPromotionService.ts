@@ -30,7 +30,11 @@ class AdminPromotionService {
     if (!promotion.isActive) return 'inactive'
 
     const now = new Date()
-    if (now < promotion.validFrom || now > promotion.validTo) {
+    const validFrom = new Date(promotion.validFrom)
+    validFrom.setHours(0, 0, 0, 0)
+    const validTo = new Date(promotion.validTo)
+    validTo.setHours(23, 59, 59, 999)
+    if (now < validFrom || now > validTo) {
       return 'expired'
     }
 
@@ -212,7 +216,13 @@ class AdminPromotionService {
 
     const now = new Date()
     return promotions
-      .filter(p => p.validFrom <= now && now <= p.validTo)
+      .filter(p => {
+        const validFrom = new Date(p.validFrom)
+        validFrom.setHours(0, 0, 0, 0)
+        const validTo = new Date(p.validTo)
+        validTo.setHours(23, 59, 59, 999)
+        return validFrom <= now && now <= validTo
+      })
       .map(p => ({
         id: p.id,
         name: p.name,

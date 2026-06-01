@@ -142,6 +142,9 @@ async function main() {
   const arranjos  = await prisma.category.create({ data: { name: 'Arranjos',  slug: 'arranjos'  } })
   const plantas   = await prisma.category.create({ data: { name: 'Plantas',   slug: 'plantas'   } })
   const presentes = await prisma.category.create({ data: { name: 'Presentes', slug: 'presentes' } })
+  const baloes    = await prisma.category.create({ data: { name: 'Balões',    slug: 'baloes'    } })
+  const pelucias   = await prisma.category.create({ data: { name: 'Pelúcias',  slug: 'pelucias'  } })
+  const chocolates = await prisma.category.create({ data: { name: 'Chocolates',slug: 'chocolates' } })
 
   const products = [
     { name: 'Buque Primavera Rosa', slug: 'buque-primavera-rosa', categoryId: buques.id, description: 'Um buque fresco e delicado, perfeito para presentear em qualquer ocasiao especial.', price: 89, stock: 23, variants: [{ name: 'Pequeno', price: 89, stock: 10 }, { name: 'Medio', price: 119, stock: 8 }, { name: 'Grande', price: 159, stock: 5 }] },
@@ -156,6 +159,14 @@ async function main() {
     { name: 'Kit Romantico', slug: 'kit-romantico', categoryId: presentes.id, description: 'Buque de rosas, chocolates finos e cartao personalizado para surpreender.', price: 185, stock: 12, variants: [{ name: 'Padrao', price: 185, stock: 8 }, { name: 'Premium', price: 265, stock: 4 }] },
     { name: 'Cesta Floral', slug: 'cesta-floral', categoryId: presentes.id, description: 'Cesta artesanal com flores frescas, ideal para comemoracoes especiais.', price: 145, stock: 9, variants: [{ name: 'Pequena', price: 145, stock: 6 }, { name: 'Grande', price: 215, stock: 3 }] },
     { name: 'Box Especial', slug: 'box-especial', categoryId: presentes.id, description: 'Box exclusiva com flores, vela aromatica e mensagem personalizada.', price: 225, stock: 5, variants: [{ name: 'Unico', price: 225, stock: 5 }] },
+    
+    // Hospital Gifts products
+    { name: 'Balão Get Well Soon 🎈', slug: 'balao-get-well-soon', categoryId: baloes.id, description: 'Balão metalizado com gás hélio para desejar rápidas melhoras.', price: 49, stock: 30, variants: [{ name: 'Único', price: 49, stock: 30 }] },
+    { name: 'Balão Welcome Baby Boy/Girl 👶', slug: 'balao-welcome-baby', categoryId: baloes.id, description: 'Balão com gás hélio perfeito para comemorar a chegada de um bebê.', price: 49, stock: 30, variants: [{ name: 'Menino', price: 49, stock: 15 }, { name: 'Menina', price: 49, stock: 15 }] },
+    { name: 'Urso de Pelúcia Teddy 🧸', slug: 'urso-pelucia-teddy', categoryId: pelucias.id, description: 'Urso de pelúcia clássico hipoalergênico e ultra macio.', price: 89, stock: 15, variants: [{ name: 'Padrao', price: 89, stock: 15 }] },
+    { name: 'Coelho Soft Plush 🐰', slug: 'coelho-soft-plush', categoryId: pelucias.id, description: 'Pelúcia macia de coelho, segura para recém-nascidos.', price: 75, stock: 20, variants: [{ name: 'Rosa', price: 75, stock: 10 }, { name: 'Azul', price: 75, stock: 10 }] },
+    { name: 'Trufas Belgas Artesanais 🍫', slug: 'trufas-belgas-artesanais', categoryId: chocolates.id, description: 'Caixa luxuosa contendo 12 trufas sortidas de chocolate belga.', price: 69, stock: 40, variants: [{ name: 'Caixa 12 unid', price: 69, stock: 40 }] },
+    { name: 'Chocolate Gourmet Amargo 70%', slug: 'chocolate-gourmet-amargo', categoryId: chocolates.id, description: 'Barra premium de chocolate de origem com 70% cacau.', price: 39, stock: 50, variants: [{ name: 'Barra 100g', price: 39, stock: 50 }] }
   ]
 
   for (const { variants, ...product } of products) {
@@ -163,7 +174,98 @@ async function main() {
     await prisma.productVariant.createMany({ data: variants.map(v => ({ ...v, productId: created.id })) })
   }
 
-  console.log(`Seed concluido: 1 admin, 1 cidade, ${NEIGHBORHOODS.length} bairros, 4 categorias, 12 produtos.`)
+  // Seed testimonials
+  await prisma.testimonial.createMany({
+    data: [
+      { clientName: 'Mariana Silva', rating: 5, text: 'Flores maravilhosas e atendimento super atencioso. A entrega foi pontual!', isActive: true },
+      { clientName: 'Roberto Souza', rating: 5, text: 'Comprei um arranjo para minha esposa e ela adorou. Recomendo muito!', isActive: true },
+      { clientName: 'Carolina Costa', rating: 4, text: 'Excelente qualidade das flores e embalagem impecável.', isActive: true }
+    ]
+  })
+
+  // Seed blog posts
+  await prisma.post.createMany({
+    data: [
+      {
+        title: 'Como Cuidar de Suas Rosas no Inverno',
+        slug: 'como-cuidar-de-suas-rosas-no-inverno',
+        excerpt: 'Dicas práticas para manter as suas rosas lindas, saudáveis e vistosas mesmo nos dias mais frios do ano.',
+        body: 'As rosas requerem cuidados especiais durante o inverno. A rega deve ser reduzida, a poda deve ser realizada de forma limpa e em diagonal, e é ideal protegê-las de ventos excessivamente gelados...',
+        coverUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80',
+        isPublished: true,
+        publishedAt: new Date()
+      },
+      {
+        title: 'Tendências de Buquês de Noiva para 2026',
+        slug: 'tendencias-de-buques-de-noiva-para-2026',
+        excerpt: 'Descubra os estilos, cores e arranjos florais que estão em alta para casamentos este ano.',
+        body: 'O ano de 2026 traz uma valorização de buquês orgânicos, assimétricos e com elementos rústicos integrados. Tons terrosos combinados com o clássico branco e lilás dão o tom da estação...',
+        coverUrl: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=600&q=80',
+        isPublished: true,
+        publishedAt: new Date()
+      }
+    ]
+  })
+
+  // Seed coupons
+  await prisma.coupon.createMany({
+    data: [
+      {
+        code: 'BEMVINDO10',
+        description: '10% de desconto na primeira compra',
+        discountType: 'percentage',
+        discountValue: 10,
+        minOrderValue: 50,
+        validFrom: new Date(),
+        validTo: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        isActive: true
+      },
+      {
+        code: 'FRESIA20',
+        description: 'R$ 20,00 de desconto em compras acima de R$ 150,00',
+        discountType: 'fixed',
+        discountValue: 20,
+        minOrderValue: 150,
+        validFrom: new Date(),
+        validTo: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        isActive: true
+      }
+    ]
+  })
+
+  // Seed active promotion
+  const promo = await prisma.promotion.create({
+    data: {
+      name: 'Festival de Outono',
+      description: 'Desconto especial nas orquídeas e arranjos campestres',
+      discountType: 'percentage',
+      discountValue: 15,
+      validFrom: new Date(),
+      validTo: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      isActive: true
+    }
+  })
+
+  const orquidea = await prisma.product.findFirst({ where: { slug: 'orquidea-branca' } })
+  const campestre = await prisma.product.findFirst({ where: { slug: 'arranjo-campestre' } })
+  if (orquidea && campestre) {
+    await prisma.product.update({
+      where: { id: orquidea.id },
+      data: {
+        promotions: { connect: { id: promo.id } },
+        salePrice: Number(orquidea.price) * 0.85
+      }
+    })
+    await prisma.product.update({
+      where: { id: campestre.id },
+      data: {
+        promotions: { connect: { id: promo.id } },
+        salePrice: Number(campestre.price) * 0.85
+      }
+    })
+  }
+
+  console.log(`Seed concluido: 1 admin, 1 cidade, ${NEIGHBORHOODS.length} bairros, 7 categorias, 18 produtos, 3 depoimentos, 2 posts, 2 cupons, 1 promocao.`)
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect())

@@ -18,8 +18,8 @@ router.post('/process', authMiddleware, async (req: Request, res: Response, next
 // PIX — cria pagamento PIX via Mercado Pago
 router.post('/pix', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { orderId, customerEmail, cpf } = req.body
-    const result = await paymentService.createPixPayment({ orderId, customerEmail, cpf })
+    const { orderId, customerEmail, cpf, isTestMode } = req.body
+    const result = await paymentService.createPixPayment({ orderId, customerEmail, cpf, isTestMode })
     res.json(result)
   } catch (err) {
     next(err)

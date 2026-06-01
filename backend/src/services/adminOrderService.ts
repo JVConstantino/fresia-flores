@@ -74,4 +74,22 @@ export const adminOrderService = {
 
     return updated
   },
+
+  async setDeliveryFee(id: number, deliveryFee: number) {
+    const order = await prisma.order.findUnique({ where: { id } })
+    if (!order) throw Object.assign(new Error('Pedido não encontrado'), { statusCode: 404 })
+    if (order.paymentStatus !== 'waiting_quote') {
+      throw Object.assign(new Error('Este pedido não está aguardando cotação de frete'), { statusCode: 400 })
+    }
+    const newTotal = Number(order.total) + deliveryFee
+    const updated = await prisma.order.update({
+      where: { id },
+      data: {
+        deliveryFee,
+        total: newTotal,
+        paymentStatus: 'pending',
+      },
+    })
+    return updated
+  },
 }

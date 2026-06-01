@@ -19,12 +19,19 @@ interface CreateOrderInput {
   discount?: number
   paymentMethod?: string // 'card' | 'pix'
   isTestMode?: boolean
+  street?: string
+  number?: string
+  complement?: string
+  zipCode?: string
+  neighborhoodName?: string
+  city?: string
+  state?: string
 }
 
 export const orderService = {
   async create(input: CreateOrderInput) {
     let deliveryFee = 0
-    if (input.deliveryMethod !== 'retirada') {
+    if (input.deliveryMethod !== 'retirada' && input.deliveryMethod !== 'whatsapp_quote') {
       if (!input.neighborhoodId) throw Object.assign(new Error('Bairro é obrigatório para entrega'), { statusCode: 400 })
       const neighborhood = await prisma.neighborhood.findUnique({ where: { id: input.neighborhoodId } })
       if (!neighborhood) throw Object.assign(new Error('Bairro não encontrado'), { statusCode: 404 })
@@ -51,19 +58,38 @@ export const orderService = {
       })
     }
 
+    // Validar se o userId do cookie de fato existe no banco (evita erros de FK por cookie de sessão antigo pós-seed)
+    let validatedUserId: number | undefined = input.userId
+    if (validatedUserId) {
+      const userExists = await prisma.user.findUnique({ where: { id: validatedUserId }, select: { id: true } })
+      if (!userExists) {
+        validatedUserId = undefined
+      }
+    }
+
+    const isWhatsAppQuote = input.deliveryMethod === 'whatsapp_quote'
+
     const order = await prisma.order.create({
       data: {
-        userId: input.userId,
-        status: input.isTestMode ? 'paid' : 'pending',
-        paymentStatus: input.isTestMode ? 'approved' : (input.cardToken ? 'processing' : 'pending'),
+        userId: validatedUserId,
+        status: isWhatsAppQuote ? 'pending' : (input.isTestMode ? 'paid' : 'pending'),
+        paymentStatus: isWhatsAppQuote ? 'waiting_quote' : (input.isTestMode ? 'approved' : (input.cardToken ? 'processing' : 'pending')),
         paymentMethod: input.paymentMethod ?? 'card',
         paymentId: input.isTestMode ? 'TEST_MODE' : undefined,
-        total,
+        total: isWhatsAppQuote ? Math.max(0, itemsTotal - discountAmount) : total,
         discount: discountAmount > 0 ? discountAmount : null,
+        deliveryFee: isWhatsAppQuote ? null : deliveryFee,
         couponId: input.couponId ?? null,
         deliveryMessage: input.deliveryMessage,
         deliveryMethod: input.deliveryMethod,
         neighborhoodId: input.neighborhoodId,
+        street: input.street,
+        number: input.number,
+        complement: input.complement,
+        zipCode: input.zipCode,
+        neighborhoodName: input.neighborhoodName,
+        city: input.city,
+        state: input.state,
         customerName: input.customerName,
         customerEmail: input.customerEmail,
         customerPhone: input.customerPhone,

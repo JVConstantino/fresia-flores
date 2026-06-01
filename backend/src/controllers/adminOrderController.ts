@@ -34,4 +34,20 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
   }
 })
 
+router.patch('/:id/delivery-fee', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const deliveryFee = parseFloat(req.body.deliveryFee)
+    if (isNaN(deliveryFee) || deliveryFee < 0) {
+      return res.status(400).json({ error: 'Valor de frete inválido' })
+    }
+    const order = await adminOrderService.setDeliveryFee(
+      parseInt(req.params.id as string),
+      deliveryFee
+    )
+    res.json(order)
+  } catch (err) {
+    next(err)
+  }
+})
+
 export const adminOrderController = router

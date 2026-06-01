@@ -114,6 +114,25 @@ router.post('/orders/:id/cancel', async (req: Request, res: Response, next: Next
   }
 })
 
+router.post('/orders/:id/deliver', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).user.id
+    const id = Number(req.params.id)
+    const order = await prisma.order.findFirst({ where: { id, userId } })
+    if (!order) return res.status(404).json({ error: 'Pedido não encontrado' })
+    if (order.status === 'cancelled') {
+      return res.status(400).json({ error: 'Pedido cancelado não pode ser entregue.' })
+    }
+    const updated = await prisma.order.update({
+      where: { id },
+      data: { status: 'delivered' }
+    })
+    res.json(updated)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // Wishlist
 router.get('/wishlist', wishlistController.getWishlist)
 router.post('/wishlist/:productId', wishlistController.addToWishlist)

@@ -68,4 +68,37 @@ export const authController = {
       next(err)
     }
   },
+
+  async forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body
+      if (!email) {
+        return res.status(400).json({ error: 'Email é obrigatório' })
+      }
+      const resetLink = await authService.forgotPassword(email)
+      console.log(`[PASSWORD RESET LINK]: ${resetLink}`)
+      res.json({ 
+        message: 'Se o email existir, um link de recuperação foi enviado.', 
+        devLink: process.env.NODE_ENV !== 'production' ? resetLink : undefined 
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token, password } = req.body
+      if (!token || !password) {
+        return res.status(400).json({ error: 'Token e senha são obrigatórios' })
+      }
+      if (password.length < 8) {
+        return res.status(400).json({ error: 'A senha deve ter pelo menos 8 caracteres' })
+      }
+      await authService.resetPassword(token, password)
+      res.json({ message: 'Senha redefinida com sucesso' })
+    } catch (err) {
+      next(err)
+    }
+  },
 }

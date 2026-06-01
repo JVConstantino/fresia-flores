@@ -19,6 +19,8 @@ export const discountService = {
     totalPromotionDiscount: number
   }> {
     const now = new Date()
+    const startOfToday = new Date(now)
+    startOfToday.setHours(0, 0, 0, 0)
     const productIds = items.map(i => i.productId)
 
     // Buscar promoções ativas que incluem esses produtos
@@ -26,7 +28,7 @@ export const discountService = {
       where: {
         isActive: true,
         validFrom: { lte: now },
-        validTo: { gte: now },
+        validTo: { gte: startOfToday },
         products: { some: { id: { in: productIds } } },
       },
       include: { products: { select: { id: true } } },

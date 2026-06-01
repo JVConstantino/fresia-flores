@@ -130,6 +130,7 @@ const RELATIONS: Record<string, Record<string, Rel>> = {
     orderItems: { kind: 'toMany', target: 'OrderItem',      fk: 'productId' },
     wishlist:   { kind: 'toMany', target: 'Wishlist',       fk: 'productId' },
     promotions: { kind: 'm2m', target: 'Promotion', join: '_ProductToPromotion', selfCol: 'A', otherCol: 'B' },
+    testimonials: { kind: 'toMany', target: 'Testimonial', fk: 'productId' },
   },
   ProductVariant: {
     product:    { kind: 'toOne',  target: 'Product',   fk: 'productId' },
@@ -151,6 +152,7 @@ const RELATIONS: Record<string, Record<string, Rel>> = {
   },
   Webhook:    { logs:    { kind: 'toMany', target: 'WebhookLog', fk: 'webhookId' } },
   WebhookLog: { webhook: { kind: 'toOne',  target: 'Webhook',    fk: 'webhookId' } },
+  Testimonial: { product: { kind: 'toOne', target: 'Product', fk: 'productId' } },
 }
 
 const uniq = <T>(arr: T[]): T[] => [...new Set(arr.filter(v => v !== null && v !== undefined))]

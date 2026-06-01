@@ -36,6 +36,7 @@ import { adminAuditController } from './controllers/adminAuditController'
 import { publicSettingsController } from './controllers/publicSettingsController'
 import { publicCouponController } from './controllers/publicCouponController'
 import { publicDiscountController } from './controllers/publicDiscountController'
+import { adminContentController } from './controllers/adminContentController'
 import accountRouter from './routes/account'
 import uploadRouter from './routes/upload'
 import adminUsersRouter from './routes/adminUsers'
@@ -98,6 +99,7 @@ app.use('/api/v1/settings', publicSettingsController)
 app.use('/api/v1/coupons', publicCouponController)
 app.use('/api/v1/discounts', publicDiscountController)
 app.use('/api/v1/promotions', promotionsRouter)
+app.use('/api/v1/content', adminContentController)
 
 // Rotas de conta (auth obrigatório)
 app.use('/api/v1/account', accountRouter)

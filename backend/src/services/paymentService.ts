@@ -19,9 +19,8 @@ interface PixPaymentInput {
 }
 
 export const paymentService = {
-  async processPayment(input: ProcessPaymentInput) {
+  async processPayment(input: ProcessPaymentInput & { isTestMode?: boolean }) {
     try {
-      const payment = getPaymentClient()
       const order = await prisma.order.findUnique({
         where: { id: input.orderId },
         include: { items: true }
@@ -29,6 +28,29 @@ export const paymentService = {
 
       if (!order) throw Object.assign(new Error('Pedido não encontrado'), { statusCode: 404 })
 
+      if (input.isTestMode) {
+        await prisma.order.update({
+          where: { id: input.orderId },
+          data: {
+            paymentId: 'TEST_CARD_PAYMENT',
+            paymentStatus: 'approved',
+            paymentMethod: 'card',
+            status: 'confirmed'
+          }
+        })
+
+        triggerWebhooks('order.paid', {
+          id: input.orderId,
+          paymentId: 'TEST_CARD_PAYMENT',
+          paymentMethod: 'card',
+          total: parseFloat(String(order.total)),
+          customerEmail: input.customerEmail || order.customerEmail,
+        }).catch(() => {})
+
+        return { success: true, paymentId: 'TEST_CARD_PAYMENT', status: 'approved' }
+      }
+
+      const payment = getPaymentClient()
       const result = await payment.create({
         body: {
           transaction_amount: parseFloat(String(order.total)),
@@ -82,12 +104,32 @@ export const paymentService = {
     }
   },
 
-  async createPixPayment(input: PixPaymentInput) {
+  async createPixPayment(input: PixPaymentInput & { isTestMode?: boolean }) {
     try {
-      const payment = getPaymentClient()
       const order = await prisma.order.findUnique({ where: { id: input.orderId } })
       if (!order) throw Object.assign(new Error('Pedido não encontrado'), { statusCode: 404 })
 
+      if (input.isTestMode) {
+        await prisma.order.update({
+          where: { id: input.orderId },
+          data: {
+            paymentId: 'TEST_PIX_PAYMENT',
+            paymentStatus: 'approved',
+            paymentMethod: 'pix',
+            status: 'confirmed',
+          }
+        })
+        return {
+          paymentId: 'TEST_PIX_PAYMENT',
+          status: 'approved',
+          qrCode: '00020101021243650016com.mercadopago0136test-pix-payment-for-fresia-flores',
+          qrCodeBase64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', // tiny 1x1 png
+          ticketUrl: 'https://www.mercadopago.com.br',
+          expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        }
+      }
+
+      const payment = getPaymentClient()
       const result = await payment.create({
         body: {
           transaction_amount: parseFloat(String(order.total)),

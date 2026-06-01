@@ -6,13 +6,17 @@ interface TestimonialDTO {
   rating: number
   text: string
   isActive: boolean
+  productId?: number | null
   createdAt: Date
 }
 
 class TestimonialService {
-  async getActive(): Promise<TestimonialDTO[]> {
+  async getActive(productId?: number | null): Promise<TestimonialDTO[]> {
     return prisma.testimonial.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        productId: productId === undefined ? null : productId
+      },
       orderBy: { createdAt: 'desc' }
     })
   }
@@ -24,6 +28,7 @@ class TestimonialService {
       prisma.testimonial.findMany({
         skip,
         take: pageSize,
+        include: { product: { select: { id: true, name: true } } },
         orderBy: { createdAt: 'desc' }
       }),
       prisma.testimonial.count()
@@ -39,6 +44,8 @@ class TestimonialService {
     clientName: string
     rating: number
     text: string
+    productId?: number | null
+    isActive?: boolean
   }): Promise<TestimonialDTO> {
     if (data.rating < 1 || data.rating > 5) {
       throw new Error('Rating deve ser entre 1 e 5')
@@ -49,14 +56,15 @@ class TestimonialService {
         clientName: data.clientName,
         rating: data.rating,
         text: data.text,
-        isActive: true
+        productId: data.productId || null,
+        isActive: data.isActive !== undefined ? data.isActive : true
       }
     })
   }
 
   async update(
     id: number,
-    data: Partial<{ clientName: string; rating: number; text: string; isActive: boolean }>
+    data: Partial<{ clientName: string; rating: number; text: string; isActive: boolean; productId?: number | null }>
   ): Promise<TestimonialDTO> {
     return prisma.testimonial.update({
       where: { id },

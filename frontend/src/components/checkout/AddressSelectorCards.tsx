@@ -126,8 +126,9 @@ export function AddressSelectorCards({ selectedAddressId, onSelectAddress }: Add
 
   async function handleSaveAddress() {
     const required = ['street', 'number', 'neighborhood', 'city', 'state', 'zipCode']
-    if (required.some(f => !formData[f as keyof typeof formData])) {
-      toast.error('Preencha todos os campos obrigatórios')
+    const missing = required.filter(f => !formData[f as keyof typeof formData])
+    if (missing.length > 0) {
+      toast.error(`Preencha todos os campos obrigatórios: ${missing.join(', ')}`)
       return
     }
 
@@ -138,8 +139,9 @@ export function AddressSelectorCards({ selectedAddressId, onSelectAddress }: Add
       onSelectAddress(newAddr.id, newAddr)
       setShowForm(false)
       toast.success('Endereço adicionado')
-    } catch {
-      toast.error('Erro ao salvar endereço')
+    } catch (err: any) {
+      const message = err.response?.data?.error || 'Erro ao salvar endereço'
+      toast.error(message)
     } finally {
       setSavingAddress(false)
     }

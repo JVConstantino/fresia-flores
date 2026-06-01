@@ -4,6 +4,9 @@ import { ArrowLeft, Clock, CheckCircle, Truck, Package, XCircle, MapPin, CreditC
 import { toast } from 'sonner'
 import { Layout } from '@/components/layout/Layout'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { PixPayment } from '@/components/features/PixPayment'
+import { CreditCardForm } from '@/components/features/CreditCardForm'
 import { api } from '@/lib/axios'
 import { useLoaderEffect } from '@/hooks/useLoaderEffect'
 import { useLoaderStore } from '@/store/loaderStore'
@@ -22,6 +25,13 @@ interface OrderDetail {
   customerName: string
   customerEmail: string
   customerPhone?: string | null
+  street?: string | null
+  number?: string | null
+  complement?: string | null
+  zipCode?: string | null
+  neighborhoodName?: string | null
+  city?: string | null
+  state?: string | null
   createdAt: string
   updatedAt: string
   items: Array<{
@@ -71,6 +81,59 @@ export function OrderDetailPage() {
   const [cancelling, setCancelling] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
+
+  // Payment States
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('pix')
+  const [isTestMode, setIsTestMode] = useState(false)
+  const [cpf, setCpf] = useState('')
+  const [paying, setPaying] = useState(false)
+  const [showPixPayment, setShowPixPayment] = useState(false)
+
+  // Receipt and Review States
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [reviewingItemId, setReviewingItemId] = useState<number | null>(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewText, setReviewText] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [submittedReviews, setSubmittedReviews] = useState<Set<number>>(new Set())
+
+  async function handleConfirmDelivery() {
+    if (!confirm('Deseja confirmar o recebimento deste pedido?')) return
+    setUpdatingStatus(true)
+    try {
+      await api.post(`/account/orders/${id}/deliver`)
+      toast.success('Recebimento confirmado! Obrigado por comprar conosco.')
+      await loadOrder()
+    } catch {
+      toast.error('Erro ao confirmar recebimento')
+    } finally {
+      setUpdatingStatus(false)
+    }
+  }
+
+  async function handleSubmitReview(productId: number) {
+    if (!reviewText.trim()) {
+      toast.error('Por favor, escreva um comentário para a avaliação.')
+      return
+    }
+    setSubmittingReview(true)
+    try {
+      await api.post('/testimonials/review', {
+        productId,
+        rating: reviewRating,
+        text: reviewText
+      })
+      toast.success('Avaliação enviada com sucesso! Ela passará por moderação.')
+      setSubmittedReviews(prev => new Set(prev).add(productId))
+      setReviewingItemId(null)
+      setReviewText('')
+      setReviewRating(5)
+    } catch {
+      toast.error('Erro ao enviar avaliação')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
 
   useLoaderEffect(loading, 'Carregando pedido...')
 
@@ -134,7 +197,18 @@ export function OrderDetailPage() {
   const subtotal = order.items.reduce((sum, item) => sum + Number(item.price) * item.qty, 0)
   const deliveryFee = order.deliveryMethod === 'retirada'
     ? 0
-    : Number(order.neighborhood?.deliveryFee || 0)
+    : Number(order.deliveryFee || order.neighborhood?.deliveryFee || 0)
+
+  const isWaitingQuote = order.paymentStatus === 'waiting_quote'
+
+  // Build address string
+  const fullAddress = [
+    order.street && `${order.street}${order.number ? `, ${order.number}` : ''}`,
+    order.complement,
+    order.neighborhoodName || order.neighborhood?.name,
+    order.city && order.state ? `${order.city} - ${order.state}` : null,
+    order.zipCode && `CEP: ${order.zipCode}`,
+  ].filter(Boolean).join(' — ')
 
   return (
     <Layout>
@@ -197,7 +271,16 @@ export function OrderDetailPage() {
                 })}
               </div>
             </div>
-            {order.status === 'pending' && order.paymentMethod === 'pix' && (
+            {isWaitingQuote && (
+              <div className="mt-6 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg text-sm text-amber-800 flex items-start gap-2">
+                <Clock size={16} className="shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">Aguardando cotação de frete</p>
+                  <p className="text-xs mt-1">Nossa vendedora está calculando o valor do frete. Assim que ele for definido, você poderá finalizar o pagamento aqui mesmo.</p>
+                </div>
+              </div>
+            )}
+            {order.status === 'pending' && !isWaitingQuote && order.paymentMethod === 'pix' && (
               <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800 flex items-start gap-2">
                 <Clock size={16} className="shrink-0 mt-0.5" />
                 <span>Aguardando confirmação do pagamento via PIX. Assim que recebermos, o pedido avançará para o próximo passo.</span>
@@ -223,38 +306,255 @@ export function OrderDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
           {/* Coluna principal */}
           <div className="space-y-6">
+            {/* Pagamento do Pedido (Apenas se status e paymentStatus forem pending) */}
+            {order.status === 'pending' && order.paymentStatus === 'pending' && (
+              <div className="bg-white border-2 border-lilac-200 rounded-xl p-6 shadow-md transition-all">
+                <h2 className="font-display italic text-2xl text-ink-800 mb-4 flex items-center gap-2">
+                  <CreditCard className="text-lilac-500" />
+                  Efetuar Pagamento
+                </h2>
+                <p className="text-sm text-ink-600 mb-6 leading-relaxed">
+                  O valor da entrega já foi definido! Selecione abaixo a sua forma de pagamento para concluir o pedido.
+                </p>
+
+                {showPixPayment ? (
+                  <div>
+                    <PixPayment
+                      orderId={order.id}
+                      customerEmail={order.customerEmail}
+                      cpf={cpf}
+                      isTestMode={isTestMode}
+                      onSuccess={async () => {
+                        toast.success('Pagamento PIX confirmado com sucesso!')
+                        setShowPixPayment(false)
+                        await loadOrder()
+                      }}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-4 text-xs text-ink-500 hover:text-ink-800"
+                      onClick={() => setShowPixPayment(false)}
+                    >
+                      ← Alterar forma de pagamento
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    {/* Modo de Teste Checkbox */}
+                    <div className="mb-6 flex items-center gap-2 bg-lilac-50/50 p-3 rounded-lg border border-lilac-100/50">
+                      <input 
+                        type="checkbox" 
+                        id="orderTestMode" 
+                        className="w-4 h-4 accent-ink-800 cursor-pointer"
+                        checked={isTestMode}
+                        onChange={e => setIsTestMode(e.target.checked)}
+                      />
+                      <label htmlFor="orderTestMode" className="text-xs font-semibold text-ink-700 cursor-pointer">
+                        Ativar Modo de Teste (Simular Pagamento Sem Gateway Real)
+                      </label>
+                    </div>
+
+                    {/* Method Selector Tabs */}
+                    <div className="flex gap-4 mb-6">
+                      <button
+                        className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                          paymentMethod === 'pix' 
+                            ? 'border-lilac-500 bg-lilac-50 text-lilac-700' 
+                            : 'border-ink-200 hover:border-ink-300 text-ink-600'
+                        }`}
+                        onClick={() => setPaymentMethod('pix')}
+                      >
+                        <div className="w-8 h-8 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center font-bold">❖</div>
+                        <span className="font-semibold text-sm">Pagar com PIX</span>
+                      </button>
+                      <button
+                        className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                          paymentMethod === 'card' 
+                            ? 'border-lilac-500 bg-lilac-50 text-lilac-700' 
+                            : 'border-ink-200 hover:border-ink-300 text-ink-600'
+                        }`}
+                        onClick={() => setPaymentMethod('card')}
+                      >
+                        <CreditCard size={24} />
+                        <span className="font-semibold text-sm">Cartão de Crédito</span>
+                      </button>
+                    </div>
+
+                    {/* PIX Form (Requires CPF) */}
+                    {paymentMethod === 'pix' && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">CPF do Pagador</label>
+                          <Input
+                            value={cpf}
+                            onChange={e => {
+                              let value = e.target.value.replace(/\D/g, '')
+                              if (value.length > 3) value = value.substring(0, 3) + '.' + value.substring(3)
+                              if (value.length > 7) value = value.substring(0, 7) + '.' + value.substring(7)
+                              if (value.length > 11) value = value.substring(0, 11) + '-' + value.substring(11, 13)
+                              setCpf(value)
+                            }}
+                            placeholder="000.000.000-00"
+                            maxLength={14}
+                            className="bg-white"
+                          />
+                        </div>
+                        <Button 
+                          className="w-full bg-teal-600 hover:bg-teal-700 text-white rounded-pill animate-fade-in"
+                          disabled={cpf.replace(/\D/g, '').length !== 11}
+                          onClick={() => setShowPixPayment(true)}
+                        >
+                          Gerar QR Code PIX
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Credit Card Form */}
+                    {paymentMethod === 'card' && (
+                      <div className="bg-ink-50/50 p-4 rounded-xl border border-ink-100">
+                        <CreditCardForm
+                          isLoading={paying}
+                          onTokenCreated={async (token, methodId, cardCpf) => {
+                            setPaying(true)
+                            useLoaderStore.getState().show('Processando pagamento...')
+                            try {
+                              const res = await api.post('/payment/process', {
+                                orderId: order.id,
+                                cardToken: token,
+                                paymentMethodId: methodId,
+                                installments: 1,
+                                customerEmail: order.customerEmail,
+                                customerPhone: order.customerPhone || undefined,
+                                cpf: cardCpf,
+                                isTestMode,
+                              })
+                              if (res.data.success || res.data.status === 'approved') {
+                                toast.success('Pagamento de cartão confirmado!')
+                                await loadOrder()
+                              } else {
+                                toast.error('O pagamento foi recusado. Verifique os dados e tente novamente.')
+                              }
+                            } catch (err: any) {
+                              toast.error(err.response?.data?.error || 'Erro ao processar pagamento.')
+                            } finally {
+                              setPaying(false)
+                              useLoaderStore.getState().hide()
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Itens */}
             <div className="bg-white border border-ink-200 rounded-xl p-6">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-500 mb-4 flex items-center gap-1">
                 <Package size={14} /> Itens do pedido
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {order.items.map((item) => {
                   const img = getFirstImage(item.variant?.images) ?? getFirstImage(item.product.images)
+                  const isDelivered = order.status === 'delivered'
+                  const isReviewed = submittedReviews.has(item.product.id)
+                  const isCurrentlyReviewing = reviewingItemId === item.id
+
                   return (
-                    <Link
-                      to={`/produto/${item.product.slug}`}
-                      key={item.id}
-                      className="flex gap-3 py-2 hover:bg-ink-50 -mx-2 px-2 rounded-lg transition-colors"
-                    >
-                      <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-lilac-100 to-petal-100">
-                        {img ? (
-                          <img src={img} alt={item.product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-2xl">🌸</div>
-                        )}
+                    <div key={item.id} className="border-b border-ink-100 last:border-0 pb-4 last:pb-0">
+                      <div className="flex gap-3 py-2">
+                        <Link
+                          to={`/produto/${item.product.slug}`}
+                          className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-lilac-100 to-petal-100 hover:opacity-90 transition-opacity"
+                        >
+                          {img ? (
+                            <img src={img} alt={item.product.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-2xl">🌸</div>
+                          )}
+                        </Link>
+                        <div className="flex-1 min-w-0">
+                          <Link to={`/produto/${item.product.slug}`} className="text-sm font-semibold text-ink-800 hover:text-lilac-600 transition-colors line-clamp-2">
+                            {item.product.name}
+                          </Link>
+                          {item.variant && (
+                            <p className="text-xs text-lilac-600 font-medium mt-0.5">{item.variant.name}</p>
+                          )}
+                          <p className="text-xs text-ink-500 mt-1">{formatPrice(item.price)} × {item.qty}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-semibold text-ink-800">
+                            {formatPrice(Number(item.price) * item.qty)}
+                          </p>
+                          {isDelivered && !isReviewed && !isCurrentlyReviewing && (
+                            <button
+                              onClick={() => {
+                                setReviewingItemId(item.id)
+                                setReviewRating(5)
+                                setReviewText('')
+                              }}
+                              className="mt-2 text-xs font-semibold text-lilac-600 hover:text-lilac-700 hover:underline flex items-center gap-1 ml-auto"
+                            >
+                              ⭐ Avaliar produto
+                            </button>
+                          )}
+                          {isReviewed && (
+                            <p className="mt-2 text-xs text-green-600 font-medium flex items-center gap-1 justify-end">
+                              ✓ Avaliado
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-ink-800">{item.product.name}</p>
-                        {item.variant && (
-                          <p className="text-xs text-lilac-600 font-medium mt-0.5">{item.variant.name}</p>
-                        )}
-                        <p className="text-xs text-ink-500 mt-1">{formatPrice(item.price)} × {item.qty}</p>
-                      </div>
-                      <p className="text-sm font-semibold text-ink-800 shrink-0">
-                        {formatPrice(Number(item.price) * item.qty)}
-                      </p>
-                    </Link>
+
+                      {/* Inline Review Form */}
+                      {isCurrentlyReviewing && (
+                        <div className="mt-3 p-4 bg-ink-50 rounded-lg border border-ink-200">
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-700">Como foi sua experiência?</h4>
+                            <div className="flex gap-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  type="button"
+                                  onClick={() => setReviewRating(star)}
+                                  className="text-lg transition-transform hover:scale-110"
+                                >
+                                  {star <= reviewRating ? '★' : '☆'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <textarea
+                            value={reviewText}
+                            onChange={(e) => setReviewText(e.target.value.slice(0, 500))}
+                            placeholder="Escreva sua opinião sincera sobre este produto..."
+                            rows={3}
+                            className="w-full px-3 py-2 border border-ink-200 rounded-lg text-xs resize-none bg-white mb-3 focus:outline-none focus:ring-1 focus:ring-lilac-500"
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              onClick={() => setReviewingItemId(null)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs h-8"
+                              disabled={submittingReview}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              onClick={() => handleSubmitReview(item.product.id)}
+                              size="sm"
+                              className="text-xs h-8 bg-lilac-500 hover:bg-lilac-600 text-white"
+                              disabled={submittingReview}
+                            >
+                              {submittingReview ? 'Enviando...' : 'Enviar Avaliação'}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )
                 })}
               </div>
@@ -267,16 +567,30 @@ export function OrderDetailPage() {
               </h2>
               {order.deliveryMethod === 'retirada' ? (
                 <p className="text-sm text-ink-700">Retirada na loja</p>
+              ) : order.deliveryMethod === 'whatsapp_quote' ? (
+                <div className="text-sm text-ink-700 space-y-1">
+                  <p className="font-medium text-amber-700">💬 Orçamento via WhatsApp</p>
+                  {fullAddress && <p className="text-ink-600">{fullAddress}</p>}
+                  {isWaitingQuote ? (
+                    <p className="text-xs text-amber-600 font-medium">Frete: A combinar</p>
+                  ) : deliveryFee > 0 ? (
+                    <p className="text-ink-500">Frete: {formatPrice(deliveryFee)}</p>
+                  ) : null}
+                </div>
               ) : order.neighborhood ? (
                 <div className="text-sm text-ink-700">
                   <p className="font-medium">{order.neighborhood.name}</p>
                   {order.neighborhood.city && (
                     <p className="text-ink-500">{order.neighborhood.city.name} / {order.neighborhood.city.state}</p>
                   )}
+                  {fullAddress && <p className="text-ink-500 text-xs">{fullAddress}</p>}
                   <p className="text-ink-500 mt-1">Taxa: {formatPrice(order.neighborhood.deliveryFee)}</p>
                 </div>
               ) : (
-                <p className="text-sm text-ink-500">Entrega local</p>
+                <div className="text-sm text-ink-500">
+                  <p>Entrega local</p>
+                  {fullAddress && <p className="text-xs">{fullAddress}</p>}
+                </div>
               )}
               <p className="text-xs text-ink-400 mt-2">Cliente: {order.customerName}{order.customerPhone ? ` · ${order.customerPhone}` : ''}</p>
             </div>
@@ -288,8 +602,15 @@ export function OrderDetailPage() {
               </h2>
               <p className="text-sm text-ink-700 capitalize">{order.paymentMethod === 'pix' ? 'PIX' : 'Cartão de crédito'}</p>
               <p className="text-xs text-ink-500 mt-1">
-                Status: <span className={`font-medium ${order.paymentStatus === 'paid' || order.paymentStatus === 'approved' ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {order.paymentStatus === 'approved' || order.paymentStatus === 'paid' ? 'Aprovado' : order.paymentStatus === 'pending' ? 'Pendente' : order.paymentStatus}
+                Status: <span className={`font-medium ${
+                  order.paymentStatus === 'paid' || order.paymentStatus === 'approved' ? 'text-green-600'
+                  : order.paymentStatus === 'waiting_quote' ? 'text-amber-600'
+                  : 'text-yellow-600'
+                }`}>
+                  {order.paymentStatus === 'approved' || order.paymentStatus === 'paid' ? 'Aprovado'
+                   : order.paymentStatus === 'waiting_quote' ? 'Aguardando Cotação'
+                   : order.paymentStatus === 'pending' ? 'Pendente'
+                   : order.paymentStatus}
                 </span>
               </p>
             </div>
@@ -322,7 +643,7 @@ export function OrderDetailPage() {
                 )}
                 <div className="flex justify-between text-ink-600">
                   <span>Frete</span>
-                  <span>{deliveryFee > 0 ? formatPrice(deliveryFee) : 'Grátis'}</span>
+                  <span>{isWaitingQuote ? <span className="text-amber-600 font-medium">A combinar</span> : deliveryFee > 0 ? formatPrice(deliveryFee) : 'Grátis'}</span>
                 </div>
                 <div className="border-t border-ink-200 pt-3 mt-3 flex justify-between items-center">
                   <span className="font-semibold text-ink-800">Total</span>
@@ -343,6 +664,22 @@ export function OrderDetailPage() {
                   </Button>
                   <p className="text-[10px] text-ink-400 mt-2 text-center">
                     Você ainda pode cancelar enquanto o pedido não for confirmado.
+                  </p>
+                </div>
+              )}
+
+              {['confirmed', 'shipped'].includes(order.status) && (
+                <div className="mt-4 pt-4 border-t border-ink-200">
+                  <Button
+                    onClick={handleConfirmDelivery}
+                    disabled={updatingStatus}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold gap-2"
+                  >
+                    <CheckCircle size={14} />
+                    Confirmar recebimento
+                  </Button>
+                  <p className="text-[10px] text-ink-400 mt-2 text-center">
+                    Confirme se você já recebeu suas flores e mimos em mãos.
                   </p>
                 </div>
               )}

@@ -16,6 +16,14 @@ export interface CreateOrderPayload {
   discount?: number
   paymentMethod: 'card' | 'pix'
   isTestMode?: boolean
+  // Delivery address for guest / whatsapp_quote
+  street?: string
+  number?: string
+  complement?: string
+  zipCode?: string
+  neighborhoodName?: string
+  city?: string
+  state?: string
 }
 
 export interface OrderItemResult {

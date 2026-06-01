@@ -10,6 +10,7 @@ import { HospitalDeliveryPage } from '@/pages/store/HospitalDeliveryPage'
 import { CartPage } from '@/pages/CartPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { RecoverPasswordPage } from '@/pages/auth/RecoverPasswordPage'
 import { CheckoutPage } from '@/pages/checkout/CheckoutPage'
 import { OrderConfirmationPage } from '@/pages/checkout/OrderConfirmationPage'
 import { ContaPage } from '@/pages/account/ContaPage'
@@ -64,6 +65,7 @@ export default function App() {
       <Route path="/carrinho" element={<Layout><CartPage /></Layout>} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/registro" element={<RegisterPage />} />
+      <Route path="/recuperar-senha" element={<RecoverPasswordPage />} />
       <Route path="/pedido/:id" element={<OrderConfirmationPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/conta" element={<PrivateRoute><ContaPage /></PrivateRoute>} />

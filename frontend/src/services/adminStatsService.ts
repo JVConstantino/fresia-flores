@@ -20,5 +20,9 @@ export const adminStatsService = {
   getOrdersStatus: async () => {
     const { data } = await api.get('/admin/stats/orders-status')
     return data
+  },
+  getAdvanced: async (days: number = 30) => {
+    const { data } = await api.get('/admin/stats/advanced', { params: { days } })
+    return data
   }
 }

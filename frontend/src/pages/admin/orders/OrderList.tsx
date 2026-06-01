@@ -15,6 +15,14 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-700',
 }
 
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-700',
+  approved: 'bg-green-100 text-green-700',
+  paid: 'bg-green-100 text-green-700',
+  processing: 'bg-blue-100 text-blue-700',
+  waiting_quote: 'bg-amber-100 text-amber-700',
+}
+
 const STATUS_LABELS: Record<string, string> = {
   pending: 'Pendente',
   paid: 'Pago',
@@ -103,6 +111,15 @@ export function OrderList() {
       label: 'Pagamento',
       render: (value: string) => (
         <span className="text-xs text-ink-500">{value === 'pix' ? 'PIX' : 'Cartão'}</span>
+      )
+    },
+    {
+      key: 'paymentStatus',
+      label: 'Pgto',
+      render: (value: string) => (
+        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${PAYMENT_STATUS_COLORS[value] || 'bg-ink-100 text-ink-600'}`}>
+          {value === 'waiting_quote' ? 'Cotação' : value === 'approved' || value === 'paid' ? 'Pago' : value === 'pending' ? 'Pendente' : value}
+        </span>
       )
     },
     {

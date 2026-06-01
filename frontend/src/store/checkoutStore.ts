@@ -10,12 +10,16 @@ interface CheckoutState {
   phone: string
 
   // Entrega
-  deliveryMethod: 'motoboy' | 'retirada'
+  deliveryMethod: 'motoboy' | 'retirada' | 'whatsapp_quote'
   cep: string
   address: string
   addressNumber: string
   complement: string
   neighborhoodId: string
+  // Extra address text for whatsapp_quote
+  bairroText: string
+  cityText: string
+  stateText: string
 
   // Smart Checkout (logged-in users)
   selectedAddressId: number | null
@@ -44,6 +48,9 @@ const initialState = {
   addressNumber: '',
   complement: '',
   neighborhoodId: '',
+  bairroText: '',
+  cityText: '',
+  stateText: '',
   selectedAddressId: null as number | null,
   selectedCardId: null as number | null,
   paymentMethod: 'card' as const,

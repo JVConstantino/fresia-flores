@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Search, User, ShoppingBag, Menu, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useCartStore, selectCount } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import { authService } from '@/services/authService'
@@ -19,7 +20,7 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-40 bg-ink-50/85 backdrop-blur-md border-b border-ink-200">
-        <div className="flex items-center gap-3 max-w-7xl mx-auto px-4 sm:px-6 lg:px-7 py-3 sm:py-4">
+        <div className="flex items-center gap-3 max-w-7xl mx-auto px-4 sm:px-6 lg:px-7 py-3 sm:py-4 relative">
           <button
             onClick={() => setMobileMenuOpen(v => !v)}
             className="md:hidden w-10 h-10 rounded-full hover:bg-ink-100 transition-colors flex items-center justify-center text-ink-600"
@@ -102,28 +103,43 @@ export function Header() {
 
       </header>
 
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50">
-          <button className="absolute inset-0 bg-black/35" onClick={closeMobileMenu} aria-label="Fechar menu" />
-          <aside className="absolute left-0 top-0 h-full w-[86%] max-w-[320px] bg-white border-r border-ink-200 shadow-2xl p-5 flex flex-col">
-            <div className="flex items-center justify-between pb-4 border-b border-ink-200">
-              <img src="/logo-fresia.png" alt="Frésia" className="h-8 w-auto object-contain" />
-              <button onClick={closeMobileMenu} className="w-9 h-9 rounded-full hover:bg-ink-100 flex items-center justify-center text-ink-600" aria-label="Fechar menu">
-                <X size={18} />
-              </button>
-            </div>
-            <nav className="mt-4 space-y-1">
-              <a href="/" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Início</a>
-              <a href="/loja" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Loja</a>
-              <a href="/presentes-para-hospitais-maternidades" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Hospitais e Maternidades</a>
-              <a href="/blog" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Blog</a>
-              <a href="/sobre" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Sobre nós</a>
-              <a href="/contato" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Contato</a>
-              <a href="/loja?ordenar=mais-buscados" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-lilac-700 bg-lilac-50 hover:bg-lilac-100">Mais buscados</a>
-            </nav>
-          </aside>
-        </div>
-      )}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-50">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="absolute inset-0 bg-black/35"
+              onClick={closeMobileMenu}
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3 }}
+              className="absolute left-0 top-0 h-full w-[86%] max-w-[320px] bg-white border-r border-ink-200 shadow-2xl p-5 flex flex-col"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-ink-200">
+                <img src="/logo-fresia.png" alt="Frésia" className="h-8 w-auto object-contain" />
+                <button onClick={closeMobileMenu} className="w-9 h-9 rounded-full hover:bg-ink-100 flex items-center justify-center text-ink-600" aria-label="Fechar menu">
+                  <X size={18} />
+                </button>
+              </div>
+              <nav className="mt-4 space-y-1">
+                <a href="/" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Início</a>
+                <a href="/loja" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Loja</a>
+                <a href="/presentes-para-hospitais-maternidades" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Hospitais e Maternidades</a>
+                <a href="/blog" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Blog</a>
+                <a href="/sobre" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Sobre nós</a>
+                <a href="/contato" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-ink-700 hover:bg-ink-50">Contato</a>
+                <a href="/loja?ordenar=mais-buscados" onClick={closeMobileMenu} className="block px-3 py-2 rounded-md text-sm text-lilac-700 bg-lilac-50 hover:bg-lilac-100">Mais buscados</a>
+              </nav>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
 
       <CartSheet />
     </>

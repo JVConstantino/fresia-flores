@@ -90,7 +90,7 @@ export function MegaMenu() {
   const displayProducts = hoveredCategoryId ? categoryProducts.get(hoveredCategoryId) || [] : []
 
   return (
-    <div className="relative" ref={menuRef} onMouseLeave={handleMouseLeave}>
+    <div ref={menuRef} onMouseLeave={handleMouseLeave}>
       <button
         onMouseEnter={handleMouseEnter}
         onClick={() => setIsOpen((v) => !v)}

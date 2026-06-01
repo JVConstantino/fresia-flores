@@ -7,9 +7,10 @@ interface PixPaymentProps {
   customerEmail: string
   cpf: string
   onSuccess: () => void
+  isTestMode?: boolean
 }
 
-export function PixPayment({ orderId, customerEmail, cpf, onSuccess }: PixPaymentProps) {
+export function PixPayment({ orderId, customerEmail, cpf, onSuccess, isTestMode = false }: PixPaymentProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [pixData, setPixData] = useState<{ qrCodeBase64: string; qrCode: string; paymentId: string } | null>(null)
@@ -18,7 +19,7 @@ export function PixPayment({ orderId, customerEmail, cpf, onSuccess }: PixPaymen
   useEffect(() => {
     const createPix = async () => {
       try {
-        const res = await api.post('/payment/pix', { orderId, customerEmail, cpf })
+        const res = await api.post('/payment/pix', { orderId, customerEmail, cpf, isTestMode })
         setPixData(res.data)
       } catch (err: any) {
         setError(err.response?.data?.error || 'Erro ao gerar PIX')
@@ -27,7 +28,7 @@ export function PixPayment({ orderId, customerEmail, cpf, onSuccess }: PixPaymen
       }
     }
     createPix()
-  }, [orderId, customerEmail, cpf])
+  }, [orderId, customerEmail, cpf, isTestMode])
 
   useEffect(() => {
     if (!pixData?.paymentId) return

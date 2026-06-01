@@ -17,7 +17,7 @@ import { useLoaderStore } from '@/store/loaderStore'
 import { neighborhoodService, type City, type Neighborhood } from '@/services/neighborhoodService'
 import { orderService } from '@/services/orderService'
 import { api } from '@/lib/axios'
-import { Store, Truck, ShoppingBag, CreditCard, CheckCircle } from 'lucide-react'
+import { Store, Truck, ShoppingBag, CreditCard } from 'lucide-react'
 
 type Step = 1 | 2 | 3 | 4 | 5
 
@@ -40,6 +40,32 @@ export function CheckoutPage() {
   const [step, setStep] = useState<Step>(1)
   const [discountedItems, setDiscountedItems] = useState<any[]>([])
   const [totalPromoDiscount, setTotalPromoDiscount] = useState(0)
+  
+  // Inline Login States
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
+  const { setUser } = useAuthStore()
+
+  const handleInlineLogin = async () => {
+    setLoginError('')
+    setLoginLoading(true)
+    try {
+      const { authService } = await import('@/services/authService')
+      const loggedUser = await authService.login(loginEmail, loginPassword)
+      setUser(loggedUser)
+      checkoutStore.setField('email', loggedUser.email)
+      checkoutStore.setField('name', loggedUser.name)
+      if (loggedUser.phone) checkoutStore.setField('phone', loggedUser.phone)
+      setStep(2)
+    } catch (err: any) {
+      setLoginError(err.response?.data?.error || 'Email ou senha incorretos.')
+    } finally {
+      setLoginLoading(false)
+    }
+  }
   
   // Delivery State
   const [cepLoading, setCepLoading] = useState(false)
@@ -101,6 +127,9 @@ export function CheckoutPage() {
       if (data.erro) { setCepError('CEP não encontrado'); return }
 
       checkoutStore.setField('address', data.logradouro)
+      checkoutStore.setField('bairroText', data.bairro || '')
+      checkoutStore.setField('cityText', data.localidade || '')
+      checkoutStore.setField('stateText', data.uf || '')
       
       const match = cities.find(c =>
         c.name.toLowerCase() === data.localidade.toLowerCase() &&
@@ -110,9 +139,31 @@ export function CheckoutPage() {
       if (match) {
         const nbhs = await neighborhoodService.getNeighborhoods(match.id)
         setNeighborhoods(nbhs)
+        
+        // Auto-select matching neighborhood
+        if (data.bairro && nbhs.length > 0) {
+          const matched = nbhs.find(n =>
+            n.name.toLowerCase() === data.bairro.toLowerCase() ||
+            data.bairro.toLowerCase().includes(n.name.toLowerCase()) ||
+            n.name.toLowerCase().includes(data.bairro.toLowerCase())
+          )
+          if (matched) {
+            setSelectedNeighborhood(matched)
+            checkoutStore.setField('neighborhoodId', matched.id.toString())
+            checkoutStore.setField('deliveryMethod', 'motoboy')
+          } else {
+            setSelectedNeighborhood(null)
+            checkoutStore.setField('neighborhoodId', '')
+            // Out of delivery zone -> switch to WhatsApp Quote
+            checkoutStore.setField('deliveryMethod', 'whatsapp_quote')
+          }
+        }
       } else {
         setNeighborhoods([])
         setSelectedNeighborhood(null)
+        checkoutStore.setField('neighborhoodId', '')
+        // Out of delivery zone -> switch to WhatsApp Quote
+        checkoutStore.setField('deliveryMethod', 'whatsapp_quote')
       }
     } catch {
       setCepError('Erro ao buscar CEP.')
@@ -121,8 +172,15 @@ export function CheckoutPage() {
     }
   }
 
-  const handleAddressSelected = async (addressId: number, address: { neighborhood: string; city: string; state: string }) => {
+  const handleAddressSelected = async (addressId: number, address: any) => {
     checkoutStore.setSelectedAddressId(addressId)
+    checkoutStore.setField('address', address.street || '')
+    checkoutStore.setField('addressNumber', address.number || '')
+    checkoutStore.setField('complement', address.complement || '')
+    checkoutStore.setField('cep', address.zipCode || '')
+    checkoutStore.setField('bairroText', address.neighborhood || '')
+    checkoutStore.setField('cityText', address.city || '')
+    checkoutStore.setField('stateText', address.state || '')
 
     const matchCity = cities.find(c =>
       c.name.toLowerCase() === address.city.toLowerCase() &&
@@ -136,14 +194,21 @@ export function CheckoutPage() {
         address.neighborhood.toLowerCase().includes(n.name.toLowerCase()) ||
         n.name.toLowerCase().includes(address.neighborhood.toLowerCase())
       )
-      setSelectedNeighborhood(match ?? null)
+      if (match) {
+        setSelectedNeighborhood(match)
+        checkoutStore.setField('deliveryMethod', 'motoboy')
+      } else {
+        setSelectedNeighborhood(null)
+        checkoutStore.setField('deliveryMethod', 'whatsapp_quote')
+      }
     } else {
       setNeighborhoods([])
       setSelectedNeighborhood(null)
+      checkoutStore.setField('deliveryMethod', 'whatsapp_quote')
     }
   }
 
-  const handleCreateOrder = async (method: 'pix' | 'card', token?: string, methodId?: string) => {
+  const handleCreateOrder = async (method: 'pix' | 'card' | 'whatsapp', token?: string, methodId?: string) => {
     if (checkoutStore.deliveryMethod === 'motoboy' && !selectedNeighborhood) {
       alert('Selecione um bairro para a entrega.')
       return
@@ -166,11 +231,33 @@ export function CheckoutPage() {
         installments: 1,
         couponId: coupon?.id,
         discount: totalPromoDiscount + couponDiscountValue,
-        paymentMethod: method,
-        isTestMode
+        paymentMethod: method === 'whatsapp' ? 'pix' : method,
+        isTestMode: method === 'whatsapp' ? false : isTestMode,
+        // Address fields
+        street: checkoutStore.address || undefined,
+        number: checkoutStore.addressNumber || undefined,
+        complement: checkoutStore.complement || undefined,
+        zipCode: checkoutStore.cep || undefined,
+        neighborhoodName: selectedNeighborhood?.name || checkoutStore.bairroText || undefined,
+        city: checkoutStore.cityText || undefined,
+        state: checkoutStore.stateText || undefined,
       })
 
-      if (method === 'pix' && !isTestMode) {
+      if (method === 'whatsapp') {
+        const itemsList = items.map(i => `• ${i.productName} (x${i.qty})`).join('\n')
+        const addressText = checkoutStore.deliveryMethod === 'retirada'
+          ? 'Retirada no ateliê físico'
+          : `- *Rua:* ${checkoutStore.address}\n- *Número:* ${checkoutStore.addressNumber}${checkoutStore.complement ? ` (${checkoutStore.complement})` : ''}\n- *Bairro:* ${selectedNeighborhood?.name || checkoutStore.bairroText || ''}\n- *Cidade/UF:* ${checkoutStore.cityText || ''} - ${checkoutStore.stateText || ''}\n- *CEP:* ${checkoutStore.cep}`
+        
+        const messageText = `🌸 *NOVO PEDIDO DE ORÇAMENTO - FRÉSIA FLORES* 🌸\n\nOlá! Registrei o pedido *#${order.id}* no site e gostaria de orçar o valor do frete para entrega.\n\n🛒 *Itens do Pedido:*\n${itemsList}\n\n📍 *Endereço de Entrega:*\n${addressText}\n\nPor favor, envie-me o valor combinado do frete para que eu possa prosseguir com o pagamento. Obrigado!`
+        const encoded = encodeURIComponent(messageText)
+        const whatsappUrl = `https://wa.me/5522999206935?text=${encoded}`
+
+        checkoutStore.reset()
+        clearCart()
+        window.open(whatsappUrl, '_blank')
+        navigate(`/pedido/${order.id}/detalhes`)
+      } else if (method === 'pix' && !isTestMode) {
         setOrderId(order.id)
         setStep(5)
       } else {
@@ -214,20 +301,32 @@ export function CheckoutPage() {
   }
 
   const isStep1Valid = checkoutStore.name && checkoutStore.email && checkoutStore.cpf.length >= 11
-  const isStep2Valid = checkoutStore.deliveryMethod === 'retirada' || (checkoutStore.cep && checkoutStore.addressNumber && selectedNeighborhood)
+  const isStep2Valid = checkoutStore.deliveryMethod === 'retirada' ||
+                       (checkoutStore.deliveryMethod === 'whatsapp_quote' && checkoutStore.cep && checkoutStore.addressNumber && checkoutStore.address) ||
+                       (checkoutStore.deliveryMethod === 'motoboy' && checkoutStore.cep && checkoutStore.addressNumber && selectedNeighborhood)
 
   // Aviso de entrega em hospital: detecta palavras-chave no endereço informado
   const isHospitalAddress = looksLikeHospital(
     `${checkoutStore.address} ${checkoutStore.complement} ${selectedNeighborhood?.name ?? ''}`
   )
 
+  // Helper: delivery method display name
+  const deliveryMethodLabel = checkoutStore.deliveryMethod === 'retirada'
+    ? 'Retirada na Loja'
+    : checkoutStore.deliveryMethod === 'whatsapp_quote'
+    ? 'Orçamento WhatsApp'
+    : selectedNeighborhood?.name ?? 'Entrega Local'
+
   return (
     <Layout>
-      <div className="max-w-5xl mx-auto px-5 py-10">
+      <div className="max-w-5xl mx-auto px-5 py-10 relative">
+        {/* Background soft glowing accent */}
+        <div className="absolute top-10 left-10 w-64 h-64 bg-lilac-200/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 right-10 w-80 h-80 bg-petal-200/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Progress Tracker */}
         {step < 5 && (
-          <div className="flex items-center justify-between mb-10 pb-2">
+          <div className="flex items-center justify-between mb-10 pb-4 border-b border-ink-200/40 relative">
             {STEPS.map((label, i) => {
               const currentStep = i + 1
               const active = currentStep === step
@@ -235,20 +334,20 @@ export function CheckoutPage() {
 
               return (
                 <div key={label} className="flex items-center flex-1 last:flex-none">
-                  <div className={`flex flex-col sm:flex-row items-center gap-2 transition-all duration-300 ${active ? 'text-ink-800' : done ? 'text-lilac-500' : 'text-ink-300'}`}>
-                    <div className={`w-8 h-8 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                  <div className={`flex flex-col sm:flex-row items-center gap-2.5 transition-all duration-300 ${active ? 'text-ink-900' : done ? 'text-lilac-500' : 'text-ink-400'}`}>
+                    <div className={`w-8 h-8 sm:w-7 sm:h-7 rounded-full border flex items-center justify-center text-[10px] font-bold font-mono transition-all duration-300 ${
                       active
-                        ? 'bg-ink-800 text-white ring-4 ring-ink-800/20 scale-110'
+                        ? 'border-lilac-500 bg-lilac-50/50 text-lilac-600 ring-4 ring-lilac-500/15 scale-105'
                         : done
-                        ? 'bg-lilac-500 text-white'
-                        : 'bg-ink-100 text-ink-400'
+                        ? 'border-green-500 bg-green-50/50 text-green-600'
+                        : 'border-ink-200 bg-white/50 text-ink-400'
                     }`}>
-                      {done ? <CheckCircle size={14} /> : currentStep}
+                      {done ? '✓' : `0${currentStep}`}
                     </div>
-                    <span className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-center sm:text-left transition-all duration-300 ${active ? 'text-ink-800' : ''}`}>{label}</span>
+                    <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-center sm:text-left transition-all duration-300 ${active ? 'text-ink-900' : ''}`}>{label}</span>
                   </div>
                   {i < STEPS.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-2 sm:mx-4 hidden sm:block transition-all duration-500 ${done ? 'bg-lilac-500' : 'bg-ink-200'}`} />
+                    <div className={`flex-1 h-[1px] mx-3 sm:mx-6 hidden sm:block transition-all duration-500 ${done ? 'bg-lilac-400' : 'bg-ink-200'}`} />
                   )}
                 </div>
               )
@@ -257,46 +356,82 @@ export function CheckoutPage() {
         )}
 
         {/* Layout 2 colunas: steps + resumo lateral */}
-        <div className={`grid gap-8 ${step < 5 ? 'grid-cols-1 lg:grid-cols-[1fr_340px]' : ''}`}>
+        <div className={`grid gap-8 ${step < 5 ? 'grid-cols-1 lg:grid-cols-[1fr_340px]' : ''} relative`}>
         <div>
 
         {/* Step 1 — Identificação (Skip for logged-in users) */}
         {!user && step === 1 && (
-          <div className="bg-white border border-ink-200 rounded-xl p-6 shadow-sm">
-            <h2 className="font-display italic text-2xl text-ink-800 mb-6">Sua Identificação</h2>
-            {!user && (
-              <div className="bg-lilac-50 border border-lilac-100 rounded-lg p-4 mb-6 flex justify-between items-center text-sm">
-                <span className="text-lilac-800">Já tem uma conta?</span>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => navigate('/login')}>Fazer Login</Button>
+          <div className="bg-white/80 border border-ink-200/60 rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.015)] backdrop-blur-md">
+            <h2 className="font-display italic text-2xl text-ink-900 mb-6">Sua Identificação</h2>
+            
+            {/* Inline Login Toggle / Form */}
+            {isLoggingIn ? (
+              <div className="bg-lilac-50/40 border border-lilac-100/60 rounded-xl p-5 mb-6 space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b border-lilac-200/40">
+                  <h3 className="font-bold text-lilac-800 text-[11px] uppercase tracking-wider">Fazer Login</h3>
+                  <button onClick={() => setIsLoggingIn(false)} className="text-xs text-lilac-600 hover:text-lilac-800 underline underline-offset-2">Quero me identificar sem login</button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-ink-500 mb-1.5">Email</label>
+                    <Input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="seu@email.com" className="rounded-xl border-ink-200 focus-visible:ring-lilac-500/20" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-ink-500 mb-1.5">Senha</label>
+                    <Input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="••••••••" className="rounded-xl border-ink-200 focus-visible:ring-lilac-500/20" />
+                  </div>
+                </div>
+                {loginError && (
+                  <p className="text-xs text-red-500 font-semibold">{loginError}</p>
+                )}
+                <div className="flex justify-end pt-2">
+                  <Button 
+                    onClick={handleInlineLogin} 
+                    disabled={loginLoading || !loginEmail || !loginPassword}
+                    className="bg-lilac-500 hover:bg-lilac-600 text-white rounded-full px-6 font-semibold text-xs uppercase tracking-wider"
+                  >
+                    {loginLoading ? 'Carregando...' : 'Entrar e Continuar'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-lilac-50/30 border border-lilac-100/50 rounded-xl p-4 mb-6 flex justify-between items-center text-sm">
+                <span className="text-lilac-800 font-medium">Já tem uma conta?</span>
+                <Button variant="outline" size="sm" className="bg-white rounded-full border-lilac-200 text-lilac-700 hover:bg-lilac-50 font-semibold" onClick={() => setIsLoggingIn(true)}>Fazer Login</Button>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">Nome completo</label>
-                <Input value={checkoutStore.name} onChange={e => checkoutStore.setField('name', e.target.value)} required />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">E-mail</label>
-                <Input type="email" value={checkoutStore.email} onChange={e => checkoutStore.setField('email', e.target.value)} required />
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">CPF</label>
-                <Input value={checkoutStore.cpf} onChange={e => checkoutStore.setField('cpf', e.target.value.replace(/\D/g, '').slice(0, 11))} placeholder="Apenas números" maxLength={11} required />
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">Telefone (opcional)</label>
-                <Input value={checkoutStore.phone} onChange={e => checkoutStore.setField('phone', e.target.value)} placeholder="(11) 99999-9999" />
-              </div>
-            </div>
+            {!isLoggingIn && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-ink-500 mb-1.5 block">Nome completo</label>
+                    <Input value={checkoutStore.name} onChange={e => checkoutStore.setField('name', e.target.value)} className="rounded-xl border-ink-200 focus-visible:ring-lilac-500/20" required />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-ink-500 mb-1.5 block">E-mail</label>
+                    <Input type="email" value={checkoutStore.email} onChange={e => checkoutStore.setField('email', e.target.value)} className="rounded-xl border-ink-200 focus-visible:ring-lilac-500/20" required />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-ink-500 mb-1.5 block">CPF</label>
+                    <Input value={checkoutStore.cpf} onChange={e => checkoutStore.setField('cpf', e.target.value.replace(/\D/g, '').slice(0, 11))} placeholder="Apenas números" maxLength={11} className="rounded-xl border-ink-200 focus-visible:ring-lilac-500/20 font-mono tracking-wide" required />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-ink-500 mb-1.5 block">Telefone (opcional)</label>
+                    <Input value={checkoutStore.phone} onChange={e => checkoutStore.setField('phone', e.target.value)} placeholder="(11) 99999-9999" className="rounded-xl border-ink-200 focus-visible:ring-lilac-500/20" />
+                  </div>
+                </div>
 
-            <div className="flex justify-end mt-8">
-              <Button className="bg-ink-800 hover:bg-lilac-500 text-white rounded-pill px-8" disabled={!isStep1Valid} onClick={() => setStep(2)}>
-                Continuar
-              </Button>
-            </div>
+                <div className="flex justify-end mt-8">
+                  <Button className="bg-ink-900 hover:bg-lilac-500 text-white rounded-full px-8 font-bold text-xs uppercase tracking-wider transition-colors" disabled={!isStep1Valid} onClick={() => setStep(2)}>
+                    Continuar
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
+
 
 
         {/* Step 2 — Entrega */}
@@ -332,7 +467,12 @@ export function CheckoutPage() {
                       className="w-full border border-ink-200 rounded-md px-3 py-2 text-sm bg-white"
                       value=""
                       onChange={e => {
-                        setSelectedNeighborhood(neighborhoods.find(n => n.id === Number(e.target.value)) ?? null)
+                        const nb = neighborhoods.find(n => n.id === Number(e.target.value))
+                        setSelectedNeighborhood(nb ?? null)
+                        if (nb) {
+                          checkoutStore.setField('neighborhoodId', nb.id.toString())
+                          checkoutStore.setField('deliveryMethod', 'motoboy')
+                        }
                       }}
                     >
                       <option value="">Selecione o bairro...</option>
@@ -343,10 +483,10 @@ export function CheckoutPage() {
                   </div>
                 )}
 
-                {/* Cidade não cadastrada → aviso */}
+                {/* Cidade não cadastrada → aviso WhatsApp Quote */}
                 {checkoutStore.selectedAddressId && neighborhoods.length === 0 && !selectedNeighborhood && (
                   <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
-                    ⚠️ Cidade do endereço não está na área de entrega. Tente retirar na loja ou use outro endereço.
+                    ⚠️ Sua cidade/bairro não está na área de entrega padrão. Ao finalizar, você poderá solicitar um orçamento de frete pelo WhatsApp.
                   </div>
                 )}
 
@@ -354,7 +494,7 @@ export function CheckoutPage() {
                   <Button variant="outline" className="rounded-pill px-8" onClick={() => setStep(1)}>Voltar</Button>
                   <Button
                     className="bg-ink-800 hover:bg-lilac-500 text-white rounded-pill px-8"
-                    disabled={!checkoutStore.selectedAddressId || !selectedNeighborhood}
+                    disabled={!checkoutStore.selectedAddressId || (!selectedNeighborhood && checkoutStore.deliveryMethod === 'motoboy')}
                     onClick={() => setStep(3)}
                   >
                     Continuar
@@ -362,9 +502,10 @@ export function CheckoutPage() {
                 </div>
               </div>
             ) : (
-              /* Original CEP-based flow for anonymous users */
+              /* Guest flow: CEP-based delivery with method selector */
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                {/* Delivery method cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                   <button
                     onClick={() => checkoutStore.setField('deliveryMethod', 'motoboy')}
                     className={`p-4 rounded-xl border-2 flex items-start gap-3 transition-all text-left ${checkoutStore.deliveryMethod === 'motoboy' ? 'border-lilac-500 bg-lilac-50' : 'border-ink-200 hover:border-ink-300'}`}
@@ -372,7 +513,7 @@ export function CheckoutPage() {
                     <Truck className={checkoutStore.deliveryMethod === 'motoboy' ? 'text-lilac-600' : 'text-ink-400'} />
                     <div>
                       <p className={`font-semibold text-sm ${checkoutStore.deliveryMethod === 'motoboy' ? 'text-lilac-800' : 'text-ink-700'}`}>Entrega Local</p>
-                      <p className="text-xs text-ink-500 mt-1">Receba em casa via motoboy. Taxa calculada por bairro.</p>
+                      <p className="text-xs text-ink-500 mt-1">Motoboy expresso. Taxa por bairro.</p>
                     </div>
                   </button>
 
@@ -383,34 +524,55 @@ export function CheckoutPage() {
                     <Store className={checkoutStore.deliveryMethod === 'retirada' ? 'text-lilac-600' : 'text-ink-400'} />
                     <div>
                       <p className={`font-semibold text-sm ${checkoutStore.deliveryMethod === 'retirada' ? 'text-lilac-800' : 'text-ink-700'}`}>Retirar na Loja</p>
-                      <p className="text-xs text-ink-500 mt-1">Grátis. Retire seu pedido no nosso ateliê físico.</p>
+                      <p className="text-xs text-ink-500 mt-1">Grátis. Retire no nosso ateliê físico.</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => checkoutStore.setField('deliveryMethod', 'whatsapp_quote')}
+                    className={`p-4 rounded-xl border-2 flex items-start gap-3 transition-all text-left ${checkoutStore.deliveryMethod === 'whatsapp_quote' ? 'border-lilac-500 bg-lilac-50' : 'border-ink-200 hover:border-ink-300'}`}
+                  >
+                    <span className="text-xl">💬</span>
+                    <div>
+                      <p className={`font-semibold text-sm ${checkoutStore.deliveryMethod === 'whatsapp_quote' ? 'text-lilac-800' : 'text-ink-700'}`}>Orçar no WhatsApp</p>
+                      <p className="text-xs text-ink-500 mt-1">Fora da área padrão. Cotação manual.</p>
                     </div>
                   </button>
                 </div>
 
-                {checkoutStore.deliveryMethod === 'retirada' ? (
-                  <div className="bg-ink-50 border border-ink-200 rounded-lg p-5 text-sm text-ink-700 mb-6">
-                    <p className="font-semibold mb-2">📍 Endereço de Retirada:</p>
-                    <p>Rua das Flores, 123 - Centro</p>
-                    <p>São Paulo / SP</p>
-                    <p className="text-xs text-ink-500 mt-2">Aguarde a confirmação por e-mail ou WhatsApp para buscar o pedido.</p>
+                {/* WhatsApp Quote notice */}
+                {checkoutStore.deliveryMethod === 'whatsapp_quote' && (
+                  <div className="p-3.5 bg-amber-50 border border-amber-200 text-xs text-amber-800 rounded-lg mb-4">
+                    ⚠️ <strong>Entrega com frete personalizado:</strong> Seu CEP não possui cálculo automático. Informe os dados do endereço de entrega abaixo. Ao finalizar, você enviará o pedido para orçamento no WhatsApp.
                   </div>
-                ) : (
+                )}
+
+                {/* CEP search (only for delivery methods, not retirada) */}
+                {checkoutStore.deliveryMethod !== 'retirada' && (
                   <div className="space-y-4">
-                    <div className="flex gap-2">
+                    <div className="flex gap-3 items-end">
                       <div className="flex-1">
                         <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">CEP</label>
-                        <Input value={checkoutStore.cep} onChange={e => checkoutStore.setField('cep', e.target.value.replace(/\D/g, '').slice(0,8))} placeholder="00000000" />
+                        <Input
+                          value={checkoutStore.cep}
+                          onChange={e => checkoutStore.setField('cep', e.target.value.replace(/\D/g, '').slice(0, 8))}
+                          placeholder="00000-000"
+                          maxLength={9}
+                        />
                       </div>
-                      <div className="flex items-end">
-                        <Button className="bg-ink-800 hover:bg-lilac-500 text-white" onClick={handleCepSearch} disabled={cepLoading || checkoutStore.cep.length < 8}>
-                          {cepLoading ? '...' : 'Buscar'}
-                        </Button>
-                      </div>
+                      <Button
+                        variant="outline"
+                        className="h-10 px-6"
+                        onClick={handleCepSearch}
+                        disabled={cepLoading}
+                      >
+                        {cepLoading ? 'Buscando...' : 'Buscar'}
+                      </Button>
                     </div>
                     {cepError && <p className="text-xs text-red-500">{cepError}</p>}
 
-                    {neighborhoods.length > 0 && (
+                    {/* Address fields (shown after CEP search fills them, or for whatsapp_quote) */}
+                    {(checkoutStore.address || checkoutStore.deliveryMethod === 'whatsapp_quote') && (
                       <div className="bg-ink-50 p-4 rounded-lg border border-ink-100 space-y-4">
                         <div>
                           <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">Rua</label>
@@ -428,22 +590,56 @@ export function CheckoutPage() {
                         </div>
 
                         {isHospitalAddress && <HospitalDeliveryNotice />}
-                        <div>
-                          <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">Bairro de Entrega</label>
-                          <select
-                            className="w-full border border-ink-200 rounded-md px-3 py-2 text-sm text-ink-800 bg-white"
-                            value={checkoutStore.neighborhoodId}
-                            onChange={e => {
-                              checkoutStore.setField('neighborhoodId', e.target.value)
-                              setSelectedNeighborhood(neighborhoods.find(n => n.id === Number(e.target.value)) ?? null)
-                            }}
-                          >
-                            <option value="">Selecione o bairro validado...</option>
-                            {neighborhoods.map(n => (
-                              <option key={n.id} value={n.id}>{n.name} — {formatPrice(Number(n.deliveryFee))}</option>
-                            ))}
-                          </select>
-                        </div>
+                        
+                        {/* Neighborhood selector for motoboy */}
+                        {checkoutStore.deliveryMethod === 'motoboy' && neighborhoods.length > 0 && (
+                          <div>
+                            <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">Bairro de Entrega</label>
+                            <select
+                              className="w-full border border-ink-200 rounded-md px-3 py-2 text-sm text-ink-800 bg-white"
+                              value={checkoutStore.neighborhoodId}
+                              onChange={e => {
+                                checkoutStore.setField('neighborhoodId', e.target.value)
+                                setSelectedNeighborhood(neighborhoods.find(n => n.id === Number(e.target.value)) ?? null)
+                              }}
+                            >
+                              <option value="">Selecione o bairro validado...</option>
+                              {neighborhoods.map(n => (
+                                <option key={n.id} value={n.id}>{n.name} — {formatPrice(Number(n.deliveryFee))}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {/* Auto-resolved neighborhood display */}
+                        {checkoutStore.deliveryMethod === 'motoboy' && selectedNeighborhood && (
+                          <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-100 rounded-lg px-4 py-2">
+                            <span>✓ Entrega para <strong>{selectedNeighborhood.name}</strong>:</span>
+                            <span className="font-semibold">{formatPrice(Number(selectedNeighborhood.deliveryFee))}</span>
+                          </div>
+                        )}
+
+                        {/* WhatsApp quote extra fields */}
+                        {checkoutStore.deliveryMethod === 'whatsapp_quote' && (
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">Bairro</label>
+                              <Input
+                                value={checkoutStore.bairroText}
+                                onChange={e => checkoutStore.setField('bairroText', e.target.value)}
+                                placeholder="Bairro para entrega..."
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold uppercase text-ink-500 mb-1.5 block">Cidade</label>
+                              <Input
+                                value={checkoutStore.cityText}
+                                onChange={e => checkoutStore.setField('cityText', e.target.value)}
+                                placeholder="Cidade"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -502,8 +698,14 @@ export function CheckoutPage() {
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span>Frete ({checkoutStore.deliveryMethod === 'retirada' ? 'Retirada' : selectedNeighborhood?.name})</span>
-                  <span>{checkoutStore.deliveryMethod === 'retirada' ? 'Grátis' : formatPrice(deliveryFee)}</span>
+                  <span>Frete ({deliveryMethodLabel})</span>
+                  <span>
+                    {checkoutStore.deliveryMethod === 'retirada'
+                      ? 'Grátis'
+                      : checkoutStore.deliveryMethod === 'whatsapp_quote'
+                      ? 'A combinar'
+                      : formatPrice(deliveryFee)}
+                  </span>
                 </div>
               </div>
 
@@ -527,73 +729,92 @@ export function CheckoutPage() {
           <div className="bg-white border border-ink-200 rounded-xl p-6 shadow-sm">
             <h2 className="font-display italic text-2xl text-ink-800 mb-6">Como você quer pagar?</h2>
             
-            <div className="flex gap-4 mb-8">
-              <button
-                className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${paymentMethod === 'pix' ? 'border-lilac-500 bg-lilac-50 text-lilac-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'}`}
-                onClick={() => setPaymentMethod('pix')}
-              >
-                <div className="w-8 h-8 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center">❖</div>
-                <span className="font-semibold text-sm">PIX</span>
-              </button>
-              <button
-                className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${paymentMethod === 'card' ? 'border-lilac-500 bg-lilac-50 text-lilac-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'}`}
-                onClick={() => setPaymentMethod('card')}
-              >
-                <CreditCard size={24} />
-                <span className="font-semibold text-sm">Cartão de Crédito</span>
-              </button>
-            </div>
-
-            <div className="mb-6 flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                id="testMode" 
-                className="w-4 h-4 accent-ink-800"
-                checked={isTestMode}
-                onChange={e => setIsTestMode(e.target.checked)}
-              />
-              <label htmlFor="testMode" className="text-sm font-semibold text-ink-700 cursor-pointer">
-                Ativar Modo de Teste (Pular Gateway de Pagamento)
-              </label>
-            </div>
-
-            {paymentMethod === 'pix' ? (
+            {checkoutStore.deliveryMethod === 'whatsapp_quote' ? (
+              /* WhatsApp Quote flow — no payment selection, just send to WhatsApp */
               <div className="space-y-6">
-                <div className="bg-teal-50 text-teal-800 p-4 rounded-lg text-sm text-center border border-teal-100">
-                  <p className="font-semibold mb-1">Aprovação Imediata!</p>
-                  <p>O QR Code para pagamento será gerado assim que você confirmar o pedido.</p>
+                <div className="bg-amber-50 text-amber-800 p-4 rounded-lg text-sm border border-amber-200 leading-relaxed">
+                  <p className="font-semibold mb-1">Cotação do Frete pelo WhatsApp</p>
+                  <p>Seu pedido será registrado e você será redirecionado para falar com nossa vendedora no WhatsApp para combinar o valor da entrega. Assim que o valor for adicionado, você poderá realizar o pagamento na página do seu pedido.</p>
                 </div>
                 <div className="flex gap-3 justify-end mt-8">
                   <Button variant="outline" className="rounded-pill px-8" onClick={() => setStep(3)} disabled={submitting}>Voltar</Button>
-                  <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-pill px-8" onClick={() => handleCreateOrder('pix')} disabled={submitting}>
-                    {submitting ? 'Gerando...' : 'Confirmar Pedido com PIX'}
+                  <Button className="bg-green-600 hover:bg-green-700 text-white rounded-pill px-8 gap-2 font-semibold" onClick={() => handleCreateOrder('whatsapp')} disabled={submitting}>
+                    {submitting ? 'Salvando...' : 'Orçar Entrega no WhatsApp 💬'}
                   </Button>
                 </div>
               </div>
             ) : (
-              <div>
-                {user ? (
-                  <>
-                    <CardWalletSelector
-                      selectedCardId={checkoutStore.selectedCardId}
-                      onSelectCard={(id) => checkoutStore.setSelectedCardId(id)}
-                    />
+              /* Normal payment flow */
+              <>
+                <div className="flex gap-4 mb-8">
+                  <button
+                    className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${paymentMethod === 'pix' ? 'border-lilac-500 bg-lilac-50 text-lilac-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'}`}
+                    onClick={() => setPaymentMethod('pix')}
+                  >
+                    <div className="w-8 h-8 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center">❖</div>
+                    <span className="font-semibold text-sm">PIX</span>
+                  </button>
+                  <button
+                    className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${paymentMethod === 'card' ? 'border-lilac-500 bg-lilac-50 text-lilac-700' : 'border-ink-200 hover:border-ink-300 text-ink-600'}`}
+                    onClick={() => setPaymentMethod('card')}
+                  >
+                    <CreditCard size={24} />
+                    <span className="font-semibold text-sm">Cartão de Crédito</span>
+                  </button>
+                </div>
+
+                <div className="mb-6 flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="testMode" 
+                    className="w-4 h-4 accent-ink-800"
+                    checked={isTestMode}
+                    onChange={e => setIsTestMode(e.target.checked)}
+                  />
+                  <label htmlFor="testMode" className="text-sm font-semibold text-ink-700 cursor-pointer">
+                    Ativar Modo de Teste (Pular Gateway de Pagamento)
+                  </label>
+                </div>
+
+                {paymentMethod === 'pix' ? (
+                  <div className="space-y-6">
+                    <div className="bg-teal-50 text-teal-800 p-4 rounded-lg text-sm text-center border border-teal-100">
+                      <p className="font-semibold mb-1">Aprovação Imediata!</p>
+                      <p>O QR Code para pagamento será gerado assim que você confirmar o pedido.</p>
+                    </div>
                     <div className="flex gap-3 justify-end mt-8">
                       <Button variant="outline" className="rounded-pill px-8" onClick={() => setStep(3)} disabled={submitting}>Voltar</Button>
-                      <Button className="bg-ink-800 hover:bg-lilac-500 text-white rounded-pill px-8" disabled={!checkoutStore.selectedCardId || submitting} onClick={() => handleCreateOrder('card')} >
-                        {submitting ? 'Processando...' : 'Confirmar Pedido'}
+                      <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-pill px-8" onClick={() => handleCreateOrder('pix')} disabled={submitting}>
+                        {submitting ? 'Gerando...' : 'Confirmar Pedido com PIX'}
                       </Button>
                     </div>
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    <CreditCardForm onTokenCreated={(token, id) => handleCreateOrder('card', token, id)} isLoading={submitting} />
-                    <div className="flex justify-start mt-4">
-                      <Button variant="ghost" className="text-sm text-ink-500" onClick={() => setStep(3)} disabled={submitting}>Voltar</Button>
-                    </div>
-                  </>
+                  <div>
+                    {user ? (
+                      <>
+                        <CardWalletSelector
+                          selectedCardId={checkoutStore.selectedCardId}
+                          onSelectCard={(id) => checkoutStore.setSelectedCardId(id)}
+                        />
+                        <div className="flex gap-3 justify-end mt-8">
+                          <Button variant="outline" className="rounded-pill px-8" onClick={() => setStep(3)} disabled={submitting}>Voltar</Button>
+                          <Button className="bg-ink-800 hover:bg-lilac-500 text-white rounded-pill px-8" disabled={!checkoutStore.selectedCardId || submitting} onClick={() => handleCreateOrder('card')} >
+                            {submitting ? 'Processando...' : 'Confirmar Pedido'}
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <CreditCardForm onTokenCreated={(token, id) => handleCreateOrder('card', token, id)} isLoading={submitting} />
+                        <div className="flex justify-start mt-4">
+                          <Button variant="ghost" className="text-sm text-ink-500" onClick={() => setStep(3)} disabled={submitting}>Voltar</Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
-              </div>
+              </>
             )}
           </div>
         )}
@@ -652,6 +873,12 @@ export function CheckoutPage() {
                   <div className="flex justify-between text-ink-500">
                     <span>Frete</span>
                     <span>{formatPrice(deliveryFee)}</span>
+                  </div>
+                )}
+                {checkoutStore.deliveryMethod === 'whatsapp_quote' && (
+                  <div className="flex justify-between text-ink-500">
+                    <span>Frete</span>
+                    <span className="text-amber-600 font-medium">A combinar</span>
                   </div>
                 )}
                 <div className="flex justify-between font-semibold text-ink-800 pt-2 border-t border-ink-100 text-base">

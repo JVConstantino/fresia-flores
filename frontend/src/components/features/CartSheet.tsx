@@ -86,7 +86,7 @@ export function CartSheet() {
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+            transition={{ type: 'tween', ease: 'easeInOut', duration: 0.35 }}
             className="fixed right-0 top-0 h-full w-96 bg-white z-50 flex flex-col shadow-2xl"
           >
             {/* Header */}

@@ -11,7 +11,7 @@ import { productService, type Product } from '@/services/productService'
 import { useLoaderEffect } from '@/hooks/useLoaderEffect'
 import { useCartStore } from '@/store/cartStore'
 
-type Tab = 'descricao' | 'cuidados' | 'entrega'
+
 
 function parseImages(raw: any): string[] {
   try {
@@ -40,9 +40,18 @@ export function ProductPage() {
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null)
   const [galleryActiveIndex, setGalleryActiveIndex] = useState(0)
   const thumbRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
-  const [activeTab, setActiveTab] = useState<Tab>('descricao')
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    descricao: true,
+    cuidados: false,
+    entrega: false,
+  })
   const [message, setMessage] = useState('')
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
+  const [reviews, setReviews] = useState<any[]>([])
+
+  const toggleSection = (id: string) => {
+    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }))
+  }
 
   useLoaderEffect(loading, 'Carregando produto...')
   const { addItem } = useCartStore()
@@ -58,6 +67,12 @@ export function ProductPage() {
       .then(p => {
         setProduct(p)
         setSelectedVariantId(p.variants[0]?.id ?? null)
+        
+        // Fetch reviews for this product
+        productService.getReviews(p.id)
+          .then(setReviews)
+          .catch(() => setReviews([]))
+
         return productService.findAll([p.category.id], 'newest', 4, slug)
       })
       .then(setRelated)
@@ -179,14 +194,15 @@ export function ProductPage() {
           <span className="text-ink-800 font-medium truncate max-w-[200px]">{product.name}</span>
         </nav>
 
-        {/* Área principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-8 lg:gap-16 mb-14 sm:mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-8 lg:gap-12 mb-14 sm:mb-20">
           {/* Galeria unificada */}
-          <GalleryUnified
-            images={unifiedImages}
-            activeIndex={galleryActiveIndex}
-            onIndexChange={setGalleryActiveIndex}
-          />
+          <div className="max-w-md mx-auto lg:max-w-none w-full">
+            <GalleryUnified
+              images={unifiedImages}
+              activeIndex={galleryActiveIndex}
+              onIndexChange={setGalleryActiveIndex}
+            />
+          </div>
 
           {/* Info */}
           <div>
@@ -295,7 +311,7 @@ export function ProductPage() {
 
             {/* Botão */}
             <Button
-              className="bg-ink-800 hover:bg-lilac-500 text-white w-full py-3 rounded-pill text-sm font-semibold transition-colors"
+              className="bg-ink-800 hover:bg-lilac-500 text-white w-full py-3 rounded-pill text-sm font-semibold transition-colors mb-6"
               onClick={() =>
                 addItem({
                   productId: product.id,
@@ -311,35 +327,93 @@ export function ProductPage() {
             >
               Adicionar ao carrinho
             </Button>
+
+            {/* Accordion de detalhes abaixo do botão */}
+            <div className="border-t border-ink-200 divide-y divide-ink-200">
+              {[
+                { id: 'descricao', title: 'Descrição', content: product.description ?? 'Sem descrição disponível.' },
+                { id: 'cuidados', title: 'Instruções de Cuidado', content: STATIC_TABS.cuidados },
+                { id: 'entrega', title: 'Informações de Entrega', content: STATIC_TABS.entrega }
+              ].map(section => {
+                const isOpen = openSections[section.id]
+                return (
+                  <div key={section.id} className="py-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleSection(section.id)}
+                      className="w-full flex items-center justify-between text-left text-xs font-semibold uppercase tracking-wider text-ink-700 hover:text-lilac-600 transition-colors"
+                    >
+                      <span>{section.title}</span>
+                      <span className="text-sm font-light">{isOpen ? '−' : '＋'}</span>
+                    </button>
+                    <div
+                      className={`mt-2 text-xs text-ink-600 leading-relaxed overflow-hidden transition-all duration-300 ${
+                        isOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+                      }`}
+                    >
+                      {section.content}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Abas de detalhes */}
-        <div className="max-w-3xl mx-auto mb-14 sm:mb-20">
-          <div className="flex border-b border-ink-200 mb-6 overflow-x-auto whitespace-nowrap">
-            {(['descricao', 'cuidados', 'entrega'] as Tab[]).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 sm:px-5 py-3 text-sm font-medium transition-colors relative ${
-                  activeTab === tab ? 'text-ink-800' : 'text-ink-500 hover:text-ink-800'
-                }`}
-              >
-                {tab === 'descricao' ? 'Descrição' : tab === 'cuidados' ? 'Cuidados' : 'Entrega'}
-                {activeTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-ink-800 rounded-full" />
-                )}
-              </button>
-            ))}
+        {/* Avaliações de Compradores Verificados */}
+        <section className="mb-14 sm:mb-20 border-t border-ink-200 pt-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <h2 className="font-display italic text-2xl sm:text-3xl text-ink-800">
+                Avaliações de <span className="text-lilac-500">Compradores</span>
+              </h2>
+              <p className="text-xs text-ink-500 mt-1">Opiniões de clientes reais que compraram este produto</p>
+            </div>
+            {reviews.length > 0 && (
+              <div className="flex items-center gap-2 bg-lilac-50 border border-lilac-100 px-3.5 py-2 rounded-xl w-fit">
+                <span className="text-sm font-bold text-lilac-700">
+                  {(reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)} ★
+                </span>
+                <span className="text-xs text-lilac-600 font-medium">({reviews.length} avaliações)</span>
+              </div>
+            )}
           </div>
-          <p className="text-sm text-ink-600 leading-relaxed">
-            {activeTab === 'descricao'
-              ? (product.description ?? 'Sem descrição disponível.')
-              : activeTab === 'cuidados'
-              ? STATIC_TABS.cuidados
-              : STATIC_TABS.entrega}
-          </p>
-        </div>
+
+          {reviews.length === 0 ? (
+            <div className="bg-ink-50 border border-dashed border-ink-200 rounded-xl p-8 text-center text-ink-500">
+              <span className="text-2xl block mb-2">⭐</span>
+              <p className="text-sm">Nenhuma avaliação para este produto ainda.</p>
+              <p className="text-[10px] text-ink-400 mt-1">Comentários e notas de clientes são exibidos após a entrega do pedido.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {reviews.map((rev) => (
+                <div key={rev.id} className="bg-white border border-ink-200 rounded-xl p-5 shadow-sm">
+                  <div className="flex justify-between items-start gap-4 mb-3">
+                    <div>
+                      <p className="font-semibold text-sm text-ink-800">{rev.clientName}</p>
+                      <p className="text-[10px] text-green-600 font-semibold flex items-center gap-1 mt-0.5">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Comprador Verificado
+                      </p>
+                    </div>
+                    <div className="flex gap-0.5 text-amber-500 font-bold text-xs">
+                      {Array.from({ length: rev.rating }).map((_, i) => (
+                        <span key={i}>★</span>
+                      ))}
+                      {Array.from({ length: 5 - rev.rating }).map((_, i) => (
+                        <span key={i} className="text-ink-200">★</span>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-ink-600 leading-relaxed italic">"{rev.text}"</p>
+                  <p className="text-[9px] text-ink-400 mt-3 text-right">
+                    {new Date(rev.createdAt || rev.date).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Produtos relacionados */}
         {related.length > 0 && (

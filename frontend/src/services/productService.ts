@@ -75,4 +75,14 @@ export const productService = {
     const { data } = await api.get<Product>(`/products/${slug}`)
     return data
   },
+
+  async getReviews(productId: number): Promise<any[]> {
+    const { data } = await api.get(`/testimonials`, { params: { productId } })
+    return data
+  },
+
+  async submitReview(productId: number, rating: number, text: string): Promise<any> {
+    const { data } = await api.post(`/testimonials/review`, { productId, rating, text })
+    return data
+  },
 }

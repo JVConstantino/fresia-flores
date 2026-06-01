@@ -46,9 +46,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-2">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       {/* Esquerda — gradiente */}
-      <div className="bg-gradient-to-br from-lilac-100 via-petal-100 to-lilac-50 flex flex-col items-center justify-center p-12">
+      <div className="hidden lg:flex bg-gradient-to-br from-lilac-100 via-petal-100 to-lilac-50 flex-col items-center justify-center p-12">
         <div className="relative font-display italic text-5xl text-lilac-500 mb-4">
           <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-petal-400" />
           Fresia
@@ -103,12 +103,12 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <button
-            type="button"
-            className="w-full text-xs text-ink-500 hover:text-ink-800 transition-colors mt-3 text-center"
+          <Link
+            to="/recuperar-senha"
+            className="block w-full text-xs text-ink-500 hover:text-ink-800 transition-colors mt-3 text-center"
           >
             Esqueci minha senha
-          </button>
+          </Link>
 
           <p className="text-center text-xs text-ink-500 mt-6">
             Não tem conta?{' '}

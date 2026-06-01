@@ -44,4 +44,14 @@ export const authService = {
       return localIds
     }
   },
+
+  async forgotPassword(email: string): Promise<any> {
+    const { data } = await api.post('/auth/forgot-password', { email })
+    return data
+  },
+
+  async resetPassword(token: string, password: string): Promise<any> {
+    const { data } = await api.post('/auth/reset-password', { token, password })
+    return data
+  },
 }

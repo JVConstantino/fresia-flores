@@ -12,6 +12,8 @@ import { toast } from 'sonner'
 import { ChevronLeft, ChevronRight, MapPin, Phone, Mail, Clock } from 'lucide-react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { motion, AnimatePresence } from 'framer-motion'
+
 
 function parseFirstImage(images: any): string | null {
   try {
@@ -48,9 +50,11 @@ export function HomePage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [_promotions, setPromotions] = useState<Promotion[]>([])
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+  const [currentTestimonialIdx, setCurrentTestimonialIdx] = useState(0)
   const [trendingProducts, setTrendingProducts] = useState<Product[]>([])
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [promoProducts, setPromoProducts] = useState<Product[]>([])
+  const [hospitalProducts, setHospitalProducts] = useState<Product[]>([])
   const [blogPosts, setBlogPosts] = useState<PostListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
@@ -82,6 +86,14 @@ export function HomePage() {
         // Produtos com salePrice definido
         const withPromo = allProds.filter((p: any) => p.salePrice != null).slice(0, 8)
         setPromoProducts(withPromo)
+        
+        // Filter hospital products (slug is 'baloes', 'pelucias' or 'chocolates')
+        const hospProds = allProds.filter((p: any) => 
+          p.category?.slug === 'baloes' || 
+          p.category?.slug === 'pelucias' || 
+          p.category?.slug === 'chocolates'
+        ).slice(0, 8)
+        setHospitalProducts(hospProds)
       } catch (err) {
         console.error('Erro ao carregar dados da home:', err)
         toast.error('Erro ao carregar página')
@@ -133,12 +145,11 @@ export function HomePage() {
     <>
       {/* Hero Section */}
       <section className="py-4 sm:py-6 px-4 sm:px-6 max-w-7xl mx-auto">
-        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2" style={{ minHeight: 'auto' }}>
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:h-[calc(100vh-100px)] lg:min-h-[500px]">
           {/* Copy Side */}
           <div
-            className="rounded-2xl p-5 sm:p-8 xl:p-12 flex flex-col justify-center"
+            className="rounded-2xl p-5 sm:p-8 xl:p-12 flex flex-col justify-center h-full"
             style={{
-              minHeight: 'min(440px, 72vh)',
               background: 'linear-gradient(160deg, #f5f0fb 0%, #fef9f5 60%, #fff0e8 100%)',
               position: 'relative',
               overflow: 'hidden'
@@ -208,8 +219,7 @@ export function HomePage() {
 
           {/* Carrossel de Produtos em Destaque */}
           <div
-            className="rounded-2xl overflow-hidden relative bg-ink-100 aspect-[4/5] sm:aspect-[5/4] lg:aspect-auto"
-            style={{ minHeight: '280px' }}
+            className="rounded-2xl overflow-hidden relative bg-ink-100 h-full min-h-[320px] lg:min-h-[initial] w-full"
             onMouseEnter={() => setCarouselPaused(true)}
             onMouseLeave={() => setCarouselPaused(false)}
           >
@@ -426,6 +436,46 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Hospital Gifts Section */}
+      {hospitalProducts.length > 0 && (
+        <section className="py-14 sm:py-24 px-4 sm:px-6 bg-gradient-to-br from-amber-50/40 via-petal-50/20 to-white border-t border-b border-ink-100">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-8 mb-8 sm:mb-12">
+              <div>
+                <span className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full w-fit mb-3">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping" />
+                  <span className="text-xs text-amber-800 font-medium">Presentes Permitidos em Hospitais</span>
+                </span>
+                <h2 className="text-3xl sm:text-5xl font-display font-semibold text-ink-900">
+                  Hospitais & <em className="italic text-lilac-600 font-normal">Maternidades</em>
+                </h2>
+              </div>
+              <div className="text-left">
+                <p className="text-sm text-ink-500 mb-2">Balões metalizados, pelúcias hipoalergênicas e chocolates finos autorizados para visitas.</p>
+                <Link to="/presentes-para-hospitais-maternidades" className="text-sm font-semibold text-lilac-600 hover:text-lilac-700 underline underline-offset-2">
+                  Ver todos os mimos →
+                </Link>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+              {hospitalProducts.map((product: any) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  slug={product.slug}
+                  image={parseFirstImage(product.images) ?? undefined}
+                  price={Number(product.price)}
+                  category={product.category?.name || 'Mimos'}
+                  stock={product.stock}
+                  onQuickView={() => setQuickViewProduct(product)}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Blog */}
       {blogPosts.length > 0 && (
         <section className="py-14 sm:py-24 px-4 sm:px-6 max-w-7xl mx-auto">
@@ -469,20 +519,93 @@ export function HomePage() {
 
       {/* Testimonials */}
       {testimonials.length > 0 && (
-        <section className="py-24 px-6 bg-ink-50 max-w-7xl mx-auto rounded-2xl">
-          <h2 className="text-5xl font-display font-semibold text-ink-900 mb-12 text-center">
+        <section className="py-20 px-4 md:px-8 bg-ink-50 max-w-7xl mx-auto rounded-2xl overflow-hidden">
+          <h2 className="text-4xl md:text-5xl font-display font-semibold text-ink-900 mb-10 text-center">
             O que Clientes <em className="italic text-lilac-600 font-normal">Dizem</em>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.slice(0, 3).map(testimonial => (
-              <TestimonialCard
-                key={testimonial.id}
-                id={testimonial.id}
-                clientName={testimonial.clientName}
-                text={testimonial.text}
-                rating={testimonial.rating}
-                date={testimonial.createdAt}
+          {/* Carousel Layout */}
+          <div className="relative flex items-center justify-center group px-2 sm:px-8">
+            {/* Prev Button */}
+            <button
+              onClick={() => setCurrentTestimonialIdx(prev => (prev - 1 + testimonials.length) % testimonials.length)}
+              className="absolute left-0 md:left-2 z-10 w-9 h-9 sm:w-11 sm:h-11 bg-white hover:bg-lilac-50 text-ink-700 hover:text-lilac-600 rounded-full flex items-center justify-center shadow border border-ink-100 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+              aria-label="Anterior"
+            >
+              ←
+            </button>
+
+            {/* Testimonials List wrapper */}
+            <div className="w-full overflow-hidden max-w-5xl px-8 md:px-0">
+              {/* Mobile View: 1 by 1 */}
+              <div className="md:hidden">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentTestimonialIdx}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    {testimonials[currentTestimonialIdx] && (
+                      <TestimonialCard
+                        id={testimonials[currentTestimonialIdx].id}
+                        clientName={testimonials[currentTestimonialIdx].clientName}
+                        text={testimonials[currentTestimonialIdx].text}
+                        rating={testimonials[currentTestimonialIdx].rating}
+                        date={testimonials[currentTestimonialIdx].createdAt}
+                      />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Desktop View: 3 cards showing, sliding 1-by-1 */}
+              <div className="hidden md:grid md:grid-cols-3 gap-8">
+                {[0, 1, 2].map((offset) => {
+                  const idx = (currentTestimonialIdx + offset) % testimonials.length
+                  const item = testimonials[idx]
+                  if (!item) return null
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <TestimonialCard
+                        id={item.id}
+                        clientName={item.clientName}
+                        text={item.text}
+                        rating={item.rating}
+                        date={item.createdAt}
+                      />
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Next Button */}
+            <button
+              onClick={() => setCurrentTestimonialIdx(prev => (prev + 1) % testimonials.length)}
+              className="absolute right-0 md:right-2 z-10 w-9 h-9 sm:w-11 sm:h-11 bg-white hover:bg-lilac-50 text-ink-700 hover:text-lilac-600 rounded-full flex items-center justify-center shadow border border-ink-100 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+              aria-label="Próximo"
+            >
+              →
+            </button>
+          </div>
+
+          {/* Dots Indicator */}
+          <div className="flex justify-center gap-2 mt-8">
+            {testimonials.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentTestimonialIdx(i)}
+                className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+                  currentTestimonialIdx === i ? 'bg-lilac-500 w-5' : 'bg-ink-200 hover:bg-ink-300'
+                }`}
+                aria-label={`Slide ${i + 1}`}
               />
             ))}
           </div>

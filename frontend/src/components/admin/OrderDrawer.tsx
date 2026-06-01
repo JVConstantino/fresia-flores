@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Package, User, MapPin, CreditCard, MessageSquare } from 'lucide-react'
+import { X, Package, User, MapPin, CreditCard, MessageSquare, Truck } from 'lucide-react'
 import { toast } from 'sonner'
 import { adminOrderService } from '@/services/adminOrderService'
 
@@ -27,6 +27,14 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-700 border-red-200',
 }
 
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  pending: 'Pendente',
+  approved: 'Aprovado',
+  paid: 'Pago',
+  processing: 'Processando',
+  waiting_quote: 'Aguardando Cotação',
+}
+
 function getFirstImage(images: any): string | null {
   try {
     if (!images) return null
@@ -52,6 +60,10 @@ export function OrderDrawer({ orderId, onClose, onStatusUpdated }: OrderDrawerPr
   const [loading, setLoading] = useState(false)
   const [newStatus, setNewStatus] = useState('')
   const [saving, setSaving] = useState(false)
+  
+  // Delivery fee manual entry state
+  const [manualFee, setManualFee] = useState('')
+  const [savingFee, setSavingFee] = useState(false)
 
   useEffect(() => {
     if (!orderId) return
@@ -60,6 +72,7 @@ export function OrderDrawer({ orderId, onClose, onStatusUpdated }: OrderDrawerPr
       .then(o => {
         setOrder(o)
         setNewStatus(o.status)
+        setManualFee('')
       })
       .catch(() => toast.error('Erro ao carregar pedido'))
       .finally(() => setLoading(false))
@@ -82,9 +95,39 @@ export function OrderDrawer({ orderId, onClose, onStatusUpdated }: OrderDrawerPr
     }
   }
 
+  async function handleSetDeliveryFee() {
+    if (!order) return
+    const fee = parseFloat(manualFee.replace(',', '.'))
+    if (isNaN(fee) || fee < 0) {
+      toast.error('Informe um valor de frete válido')
+      return
+    }
+    setSavingFee(true)
+    try {
+      const updated = await adminOrderService.setDeliveryFee(order.id, fee)
+      setOrder({ ...order, deliveryFee: updated.deliveryFee, total: updated.total, paymentStatus: updated.paymentStatus })
+      onStatusUpdated()
+      toast.success(`Frete de ${formatPrice(fee)} definido! O cliente já pode finalizar o pagamento.`)
+      setManualFee('')
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Erro ao definir frete')
+    } finally {
+      setSavingFee(false)
+    }
+  }
+
   const subtotal = order?.items?.reduce(
     (sum: number, item: any) => sum + Number(item.price) * item.qty, 0
   ) ?? 0
+
+  // Build full address string from order fields
+  const fullAddress = order ? [
+    order.street && `${order.street}${order.number ? `, ${order.number}` : ''}`,
+    order.complement,
+    order.neighborhoodName || order.neighborhood?.name,
+    order.city && order.state ? `${order.city} - ${order.state}` : null,
+    order.zipCode && `CEP: ${order.zipCode}`,
+  ].filter(Boolean).join(' — ') : ''
 
   return (
     <>
@@ -115,6 +158,38 @@ export function OrderDrawer({ orderId, onClose, onStatusUpdated }: OrderDrawerPr
           <div className="flex-1 flex items-center justify-center text-ink-400">Carregando...</div>
         ) : order ? (
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+
+            {/* Waiting Quote Alert — show only for whatsapp_quote orders */}
+            {order.paymentStatus === 'waiting_quote' && (
+              <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-xl space-y-3">
+                <div className="flex items-center gap-2 text-amber-800">
+                  <Truck size={18} />
+                  <p className="font-semibold text-sm">⚠️ Aguardando Cotação de Frete</p>
+                </div>
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  Este pedido foi feito via WhatsApp Quote. Defina o valor do frete combinado para que o cliente possa finalizar o pagamento.
+                </p>
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="text-xs font-semibold text-amber-800 mb-1 block">Valor do frete (R$)</label>
+                    <input
+                      type="text"
+                      value={manualFee}
+                      onChange={e => setManualFee(e.target.value)}
+                      placeholder="Ex: 25,00"
+                      className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-amber-400 focus:outline-none"
+                    />
+                  </div>
+                  <button
+                    onClick={handleSetDeliveryFee}
+                    disabled={savingFee || !manualFee}
+                    className="px-5 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    {savingFee ? 'Salvando...' : 'Definir Frete'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Alterar Status */}
             <div className="p-4 bg-ink-50 rounded-xl border border-ink-100">
@@ -159,13 +234,24 @@ export function OrderDrawer({ orderId, onClose, onStatusUpdated }: OrderDrawerPr
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-2 flex items-center gap-1">
                 <MapPin size={12} /> Entrega
               </p>
-              <div className="text-sm text-ink-700">
+              <div className="text-sm text-ink-700 space-y-1">
                 {order.deliveryMethod === 'retirada' ? (
                   <p>Retirada na loja</p>
+                ) : order.deliveryMethod === 'whatsapp_quote' ? (
+                  <>
+                    <p className="font-medium text-amber-700">💬 Orçamento via WhatsApp</p>
+                    {fullAddress && <p className="text-ink-600">{fullAddress}</p>}
+                  </>
                 ) : order.neighborhood ? (
-                  <p>{order.neighborhood.name} — {formatPrice(order.neighborhood.deliveryFee)}</p>
+                  <>
+                    <p>{order.neighborhood.name} — {formatPrice(order.neighborhood.deliveryFee)}</p>
+                    {fullAddress && <p className="text-ink-500 text-xs">{fullAddress}</p>}
+                  </>
                 ) : (
-                  <p className="text-ink-400">Sem informação de entrega</p>
+                  <>
+                    <p className="text-ink-400">Sem bairro cadastrado</p>
+                    {fullAddress && <p className="text-ink-500 text-xs">{fullAddress}</p>}
+                  </>
                 )}
               </div>
             </div>
@@ -178,8 +264,12 @@ export function OrderDrawer({ orderId, onClose, onStatusUpdated }: OrderDrawerPr
               <div className="text-sm space-y-1">
                 <p className="text-ink-700 capitalize">{order.paymentMethod === 'pix' ? 'PIX' : 'Cartão de crédito'}</p>
                 <p className="text-ink-500">
-                  Status: <span className={`font-medium ${order.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {order.paymentStatus === 'paid' ? 'Pago' : order.paymentStatus === 'pending' ? 'Pendente' : order.paymentStatus}
+                  Status: <span className={`font-medium ${
+                    order.paymentStatus === 'paid' || order.paymentStatus === 'approved' ? 'text-green-600'
+                    : order.paymentStatus === 'waiting_quote' ? 'text-amber-600'
+                    : 'text-yellow-600'
+                  }`}>
+                    {PAYMENT_STATUS_LABELS[order.paymentStatus] || order.paymentStatus}
                   </span>
                 </p>
                 {order.paymentId && (
@@ -237,6 +327,18 @@ export function OrderDrawer({ orderId, onClose, onStatusUpdated }: OrderDrawerPr
                 <div className="flex justify-between text-green-600">
                   <span>Desconto</span>
                   <span>-{formatPrice(order.discount)}</span>
+                </div>
+              )}
+              {order.deliveryFee != null && Number(order.deliveryFee) > 0 && (
+                <div className="flex justify-between text-ink-600">
+                  <span>Frete</span>
+                  <span>{formatPrice(order.deliveryFee)}</span>
+                </div>
+              )}
+              {order.paymentStatus === 'waiting_quote' && (
+                <div className="flex justify-between text-amber-600">
+                  <span>Frete</span>
+                  <span className="font-medium">A definir</span>
                 </div>
               )}
               <div className="flex justify-between font-semibold text-ink-800 pt-2 border-t border-ink-200 text-base">

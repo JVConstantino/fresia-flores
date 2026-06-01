@@ -19,5 +19,10 @@ export const adminOrderService = {
   async updateStatus(id: number, status: string) {
     const { data } = await api.patch(`/admin/orders/${id}`, { status })
     return data
+  },
+
+  async setDeliveryFee(id: number, deliveryFee: number) {
+    const { data } = await api.patch(`/admin/orders/${id}/delivery-fee`, { deliveryFee })
+    return data
   }
 }

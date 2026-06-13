@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
 import { Textarea } from '@/components/ui/textarea'
 import { ProductCard } from '@/components/features/ProductCard'
 import { QuickViewDialog } from '@/components/features/QuickViewDialog'
@@ -40,18 +42,9 @@ export function ProductPage() {
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null)
   const [galleryActiveIndex, setGalleryActiveIndex] = useState(0)
   const thumbRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    descricao: true,
-    cuidados: false,
-    entrega: false,
-  })
   const [message, setMessage] = useState('')
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
   const [reviews, setReviews] = useState<any[]>([])
-
-  const toggleSection = (id: string) => {
-    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }))
-  }
 
   useLoaderEffect(loading, 'Carregando produto...')
   const { addItem } = useCartStore()
@@ -329,34 +322,22 @@ export function ProductPage() {
             </Button>
 
             {/* Accordion de detalhes abaixo do botão */}
-            <div className="border-t border-ink-200 divide-y divide-ink-200">
+            <Accordion type="multiple" className="border-t border-ink-200">
               {[
                 { id: 'descricao', title: 'Descrição', content: product.description ?? 'Sem descrição disponível.' },
                 { id: 'cuidados', title: 'Instruções de Cuidado', content: STATIC_TABS.cuidados },
                 { id: 'entrega', title: 'Informações de Entrega', content: STATIC_TABS.entrega }
-              ].map(section => {
-                const isOpen = openSections[section.id]
-                return (
-                  <div key={section.id} className="py-3">
-                    <button
-                      type="button"
-                      onClick={() => toggleSection(section.id)}
-                      className="w-full flex items-center justify-between text-left text-xs font-semibold uppercase tracking-wider text-ink-700 hover:text-lilac-600 transition-colors"
-                    >
-                      <span>{section.title}</span>
-                      <span className="text-sm font-light">{isOpen ? '−' : '＋'}</span>
-                    </button>
-                    <div
-                      className={`mt-2 text-xs text-ink-600 leading-relaxed overflow-hidden transition-all duration-300 ${
-                        isOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
-                      }`}
-                    >
-                      {section.content}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+              ].map(section => (
+                <AccordionItem key={section.id} value={section.id} className="border-ink-200">
+                  <AccordionTrigger className="text-xs font-semibold uppercase tracking-wider text-ink-700 hover:text-lilac-600 hover:no-underline py-3">
+                    {section.title}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-xs text-ink-600 leading-relaxed">
+                    {section.content}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </div>
 
@@ -422,20 +403,25 @@ export function ProductPage() {
               Você também pode{' '}
               <span className="text-lilac-500">gostar</span>
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {related.map(p => (
-                <ProductCard
-                  key={p.id}
-                  id={p.id}
-                  name={p.name}
-                  slug={p.slug}
-                  image={typeof p.images === 'string' ? JSON.parse(p.images)[0] : p.images?.[0]}
-                  price={Number(p.price)}
-                  category={p.category?.name || ''}
-                  stock={p.stock}
-                />
-              ))}
-            </div>
+            <Carousel opts={{ align: 'start', slidesToScroll: 1 }} className="w-full">
+              <CarouselContent className="-ml-3">
+                {related.map(p => (
+                  <CarouselItem key={p.id} className="pl-3 basis-1/2 sm:basis-1/3 lg:basis-1/4">
+                    <ProductCard
+                      id={p.id}
+                      name={p.name}
+                      slug={p.slug}
+                      image={typeof p.images === 'string' ? JSON.parse(p.images)[0] : p.images?.[0]}
+                      price={Number(p.price)}
+                      category={p.category?.name || ''}
+                      stock={p.stock}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden sm:flex -left-4 border-ink-200 text-ink-600 hover:bg-lilac-50 hover:text-lilac-600" />
+              <CarouselNext className="hidden sm:flex -right-4 border-ink-200 text-ink-600 hover:bg-lilac-50 hover:text-lilac-600" />
+            </Carousel>
           </div>
         )}
       </div>

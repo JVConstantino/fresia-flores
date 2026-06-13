@@ -48,6 +48,7 @@ const NAV_STRUCTURE = [
     items: [
       { label: 'Loja', path: '/admin/configuracoes', icon: Home },
       { label: 'Pagamentos', path: '/admin/pagamentos', icon: ShoppingBag },
+      { label: 'E-mail', path: '/admin/email', icon: Mail },
       { label: 'Webhooks', path: '/admin/webhooks', icon: Webhook },
     ]
   }
@@ -98,12 +99,15 @@ export function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
   }, [query])
 
   return (
-    <aside className={cn('sticky top-4 h-[calc(100vh-32px)] bg-white border border-ink-200 rounded-lg p-5 flex flex-col gap-3', className)}>
+    <aside className={cn('sticky top-4 h-[calc(100vh-32px)] bg-white rounded-lg p-5 flex flex-col gap-3', className)}>
       {/* Logo */}
-      <div className="flex items-center justify-between pb-5 border-b border-ink-200">
+      <div className="flex items-center justify-between pb-5 border-b border-ink-100">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-lilac-500 rounded-md flex items-center justify-center text-white text-sm font-bold">F</div>
-          <span className="text-sm font-semibold text-ink-900">Frésia</span>
+          <img src="/logo-fresia.png" alt="Frésia" className="h-8 w-auto" />
+          <div>
+            <p className="text-xs font-semibold text-ink-800 leading-tight">Painel Admin</p>
+            <p className="text-[10px] text-ink-400">Frésia Flores</p>
+          </div>
         </div>
         <button
           onClick={() => navigate('/')}
@@ -115,7 +119,7 @@ export function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-ink-50 border border-ink-200 rounded-md">
+      <div className="flex items-center gap-2 px-3 py-2 bg-ink-50 rounded-md">
         <Search size={14} className="text-ink-500" />
         <input
           type="text"
@@ -161,7 +165,7 @@ export function AdminSidebar({ className, onNavigate }: AdminSidebarProps) {
       </nav>
 
       {/* User Card */}
-      <div className="pt-3 border-t border-ink-200">
+      <div className="pt-3 border-t border-ink-100">
         <div className="flex items-center gap-3 px-3 py-2 bg-ink-50 rounded-md">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-lilac-400 to-petal-400" />
           <div className="flex-1 min-w-0">

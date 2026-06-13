@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, AlertTriangle, Boxes, Search, X } from 'lucide-react'
+import { Plus, AlertTriangle, Boxes, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { AdminLayout } from '@/components/admin/AdminLayout'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { supplyService, type Supply, type SupplyCategory } from '@/services/supplyService'
@@ -110,44 +111,45 @@ export function SupplyList() {
           </label>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowCatForm(!showCatForm)}>Categorias</Button>
+          <Button variant="outline" onClick={() => setShowCatForm(true)}>Categorias</Button>
           <Button onClick={() => setShowNew(true)} className="bg-lilac-500 hover:bg-lilac-600 gap-2">
             <Plus size={14} /> Novo Suprimento
           </Button>
         </div>
       </div>
 
-      {showCatForm && (
-        <div className="bg-white border border-ink-200 rounded-xl p-4 mb-4">
-          <h3 className="text-sm font-semibold text-ink-800 mb-3">Categorias de Suprimentos</h3>
-          <div className="flex gap-2 mb-3">
-            <Input
-              placeholder="Nova categoria (ex: Embalagens, Cartões)"
-              value={newCatName}
-              onChange={e => setNewCatName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleCreateCategory()}
-            />
-            <Button onClick={handleCreateCategory} className="bg-lilac-500 hover:bg-lilac-600 shrink-0">Adicionar</Button>
+      <Dialog open={showCatForm} onOpenChange={() => setShowCatForm(false)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display">Categorias de Suprimentos</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Nova categoria (ex: Embalagens, Cartões)"
+                value={newCatName}
+                onChange={e => setNewCatName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleCreateCategory()}
+              />
+              <Button onClick={handleCreateCategory} className="bg-lilac-500 hover:bg-lilac-600 shrink-0">Adicionar</Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categories.map(c => (
+                <span key={c.id} className="text-sm bg-ink-50 border border-ink-200 px-3 py-1.5 rounded-full">
+                  {c.name} <span className="text-ink-400">({c._count?.supplies ?? 0})</span>
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {categories.map(c => (
-              <span key={c.id} className="text-sm bg-ink-50 border border-ink-200 px-3 py-1.5 rounded-full">
-                {c.name} <span className="text-ink-400">({c._count?.supplies ?? 0})</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      {showNew && (
-        <div className="bg-white border border-lilac-200 rounded-xl p-5 mb-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-ink-800">Novo Suprimento</h3>
-            <button onClick={() => setShowNew(false)} className="text-ink-400 hover:text-ink-600">
-              <X size={18} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <Dialog open={showNew} onOpenChange={() => setShowNew(false)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display">Novo Suprimento</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Nome (ex: Caixa kraft 20x20)" />
             <select
               value={form.categoryId}
@@ -164,23 +166,23 @@ export function SupplyList() {
             <Input value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))} placeholder="Fornecedor (opcional)" />
             <Input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notas (opcional)" />
           </div>
-          <div className="flex gap-2 mt-4">
-            <Button onClick={handleCreate} className="bg-lilac-500 hover:bg-lilac-600">Salvar</Button>
+          <div className="flex gap-2 pt-1">
+            <Button onClick={handleCreate} className="flex-1 bg-lilac-500 hover:bg-lilac-600">Salvar</Button>
             <Button variant="outline" onClick={() => setShowNew(false)}>Cancelar</Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {loading ? (
         <div className="text-center py-12 text-ink-400">Carregando...</div>
       ) : items.length === 0 ? (
-        <div className="bg-white border border-ink-200 rounded-xl p-16 text-center">
+        <div className="bg-white rounded-lg p-16 text-center">
           <Boxes size={40} className="mx-auto mb-3 text-ink-300" />
           <p className="text-ink-400">Nenhum suprimento cadastrado</p>
         </div>
       ) : (
-        <div className="bg-white border border-ink-200 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-lg overflow-x-auto">
+          <table className="w-full text-sm min-w-[480px]">
             <thead>
               <tr className="bg-ink-50 border-b border-ink-100">
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-500">Nome</th>

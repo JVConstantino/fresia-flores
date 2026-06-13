@@ -1,6 +1,7 @@
 import { Instagram, Facebook, MessageCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { AnimatedShinyText } from '@/components/ui/animated-shiny-text'
 
 const socialLinks = [
   { icon: Instagram, label: 'Instagram', href: '#' },
@@ -70,9 +71,9 @@ export function Footer() {
 
           {/* Coluna 4 — Newsletter */}
           <div>
-            <h5 className="text-[11px] font-semibold tracking-widest uppercase text-ink-800 mb-4">
+            <AnimatedShinyText className="text-[11px] font-semibold tracking-widest uppercase text-ink-800 mb-4 block">
               Newsletter
-            </h5>
+            </AnimatedShinyText>
             <p className="text-sm text-ink-500 leading-relaxed mb-4">
               Receba novidades e promoções exclusivas.
             </p>

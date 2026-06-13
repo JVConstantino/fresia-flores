@@ -33,7 +33,10 @@ function buildWhere(where: WhereClause = {}): { sql: string; params: any[] } {
         if (arr.length === 0) { parts.push('1=0') }
         else { parts.push(`\`${key}\` IN (${arr.map(() => '?').join(',')})`); arr.forEach(v => params.push(v)) }
       }
-      else if ('not'  in val) { parts.push(`\`${key}\` != ?`); params.push(val.not) }
+      else if ('not'  in val) {
+        if (val.not === null) parts.push(`\`${key}\` IS NOT NULL`)
+        else { parts.push(`\`${key}\` != ?`); params.push(val.not) }
+      }
       else if ('equals' in val) { parts.push(`\`${key}\` = ?`); params.push(val.equals) }
     } else {
       if (val === null) parts.push(`\`${key}\` IS NULL`)
@@ -51,14 +54,50 @@ function buildOrderBy(orderBy: any): string {
   return 'ORDER BY ' + entries.map(([k, v]) => `\`${k}\` ${String(v).toUpperCase()}`).join(', ')
 }
 
+// orderBy específico de groupBy: aceita agregados estilo Prisma
+// ({ _sum: { qty: 'desc' } }, { _count: { col: 'desc' } }, { _count: { _all: 'desc' } })
+// emitindo a expressão SQL agregada — robusto, independe de o agregado estar no SELECT.
+const GROUP_AGG: Record<string, string> = { _sum: 'SUM', _count: 'COUNT', _avg: 'AVG', _min: 'MIN', _max: 'MAX' }
+function buildGroupOrderBy(orderBy: any): string {
+  if (!orderBy) return ''
+  const src = Array.isArray(orderBy) ? Object.assign({}, ...orderBy) : orderBy
+  const parts: string[] = []
+  for (const [k, v] of Object.entries(src)) {
+    if (GROUP_AGG[k] && v !== null && typeof v === 'object') {
+      for (const [field, dir] of Object.entries(v as Record<string, any>)) {
+        const expr = field === '_all' ? `${GROUP_AGG[k]}(*)` : `${GROUP_AGG[k]}(\`${field}\`)`
+        parts.push(`${expr} ${String(dir).toUpperCase()}`)
+      }
+    } else {
+      parts.push(`\`${k}\` ${String(v).toUpperCase()}`)
+    }
+  }
+  return parts.length ? 'ORDER BY ' + parts.join(', ') : ''
+}
+
 function buildInsert(data: Record<string, any>) {
   const keys = Object.keys(data)
   return { cols: keys.map(k => `\`${k}\``).join(', '), placeholders: keys.map(() => '?').join(', '), params: Object.values(data) }
 }
 
 function buildSet(data: Record<string, any>) {
-  const keys = Object.keys(data)
-  return { setClause: keys.map(k => `\`${k}\` = ?`).join(', '), params: keys.map(k => data[k]) }
+  const clauses: string[] = []
+  const params: any[] = []
+  for (const [k, v] of Object.entries(data)) {
+    // Operações atômicas no estilo Prisma: { increment | decrement | multiply | divide | set }
+    if (v !== null && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Date)) {
+      if ('increment' in v)      { clauses.push(`\`${k}\` = \`${k}\` + ?`); params.push(v.increment) }
+      else if ('decrement' in v) { clauses.push(`\`${k}\` = \`${k}\` - ?`); params.push(v.decrement) }
+      else if ('multiply' in v)  { clauses.push(`\`${k}\` = \`${k}\` * ?`); params.push(v.multiply) }
+      else if ('divide' in v)    { clauses.push(`\`${k}\` = \`${k}\` / ?`); params.push(v.divide) }
+      else if ('set' in v)       { clauses.push(`\`${k}\` = ?`);              params.push(v.set) }
+      else                       { clauses.push(`\`${k}\` = ?`);              params.push(v) }
+    } else {
+      clauses.push(`\`${k}\` = ?`)
+      params.push(v)
+    }
+  }
+  return { setClause: clauses.join(', '), params }
 }
 
 // Separa os campos escalares (vão para INSERT/UPDATE) das escritas aninhadas de
@@ -374,7 +413,7 @@ function model(table: string) {
       if (args._avg) { for (const [k] of Object.entries(args._avg)) selectExtras.push(`AVG(\`${k}\`) as \`_avg_${k}\``) }
       const selectAll = [groupCols, ...selectExtras].join(', ')
       const limit = args.take != null ? `LIMIT ${args.take}` : ''
-      const rows = await query(`SELECT ${selectAll} FROM \`${table}\` WHERE ${sql} GROUP BY ${groupCols} ${buildOrderBy(args.orderBy)} ${limit}`, params)
+      const rows = await query(`SELECT ${selectAll} FROM \`${table}\` WHERE ${sql} GROUP BY ${groupCols} ${buildGroupOrderBy(args.orderBy)} ${limit}`, params)
       // remap to Prisma-like shape: { userId: 1, _count: { _all: 3 }, _sum: { qty: 5 } }
       return rows.map((row: any) => {
         const out: any = {}

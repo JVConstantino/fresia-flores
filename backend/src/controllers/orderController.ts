@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { orderService } from '../services/orderService'
+import { emailService } from '../services/emailService'
 
 export const orderController = {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -39,6 +40,14 @@ export const orderController = {
         state
       })
       res.status(201).json(order)
+
+      if (customerEmail && customerName) {
+        emailService.sendOrderConfirmation(customerEmail, customerName, {
+          id: order.id,
+          total: Number(order.total),
+          neighborhoodName: neighborhoodName ?? null,
+        }).catch(() => {})
+      }
     } catch (err) { next(err) }
   },
 

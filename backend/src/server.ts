@@ -6,6 +6,8 @@ import path from 'path'
 import { errorHandler } from './middlewares/errorHandler'
 import { authMiddleware } from './middlewares/authMiddleware'
 import { adminMiddleware } from './middlewares/adminMiddleware'
+import { emailService } from './services/emailService'
+import { settingService } from './services/settingService'
 import categoriesRouter from './routes/categories'
 import productsRouter from './routes/products'
 import authRouter from './routes/auth'
@@ -122,6 +124,36 @@ app.use('/api/v1/admin/posts', authMiddleware, adminMiddleware, adminPostControl
 app.use('/api/v1/admin/supplies', authMiddleware, adminMiddleware, adminSupplyController)
 app.use('/api/v1/admin/pdv', authMiddleware, adminMiddleware, adminPdvController)
 app.use('/api/v1/admin/audit', authMiddleware, adminMiddleware, adminAuditController)
+
+app.post('/api/v1/admin/email/test', authMiddleware, adminMiddleware, async (req, res, next) => {
+  try {
+    const { template, to } = req.body as { template: string; to: string }
+    if (!to || !template) return res.status(400).json({ error: 'Campos obrigatórios: template, to' })
+    const dummyOrder = { id: 1, total: 149.9, neighborhoodName: 'Centro' }
+    const name = 'Usuário Teste'
+    if (template.startsWith('custom:')) {
+      const customId = template.slice('custom:'.length)
+      const raw = await settingService.get('email_custom_templates')
+      let customs: any[] = []
+      try { customs = JSON.parse(raw) } catch {}
+      const custom = customs.find((t: any) => t.id === customId)
+      if (!custom) return res.status(400).json({ error: `Template personalizado não encontrado: ${customId}` })
+      await emailService.sendCustom(to, custom, { nome: name, pedido: '1', status: 'Confirmado', total: 'R$ 149,90' })
+      return res.json({ ok: true, message: `E-mail de teste (${custom.name}) enviado para ${to}` })
+    }
+    switch (template) {
+      case 'welcome':             await emailService.sendWelcome(to, name); break
+      case 'password_reset':      await emailService.sendPasswordReset(to, name, 'https://fresiaflores.com.br/recuperar-senha?token=TEST'); break
+      case 'order_confirmation':  await emailService.sendOrderConfirmation(to, name, dummyOrder); break
+      case 'order_status':        await emailService.sendOrderStatus(to, name, 1, 'confirmed'); break
+      case 'order_delivered':     await emailService.sendOrderDelivered(to, name, 1); break
+      case 'review_request':      await emailService.sendReviewRequest(to, name, 1); break
+      default: return res.status(400).json({ error: `Template desconhecido: ${template}` })
+    }
+    res.json({ ok: true, message: `E-mail de teste (${template}) enviado para ${to}` })
+  } catch (err) { next(err) }
+})
+
 app.use('/api/v1/posts', publicPostController)
 
 // Em produção, servir o frontend buildado

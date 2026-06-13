@@ -1,6 +1,7 @@
 import { prisma } from '@/prisma/client'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { emailService } from './emailService'
 const JWT_SECRET = process.env.JWT_SECRET!
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 
@@ -41,6 +42,7 @@ export const authService = {
       data: { name, email, passwordHash, phone: phone ?? null },
       select: { id: true, name: true, email: true, phone: true, isAdmin: true },
     })
+    emailService.sendWelcome(user.email, user.name).catch(() => {})
     return { user, token: signToken(user.id, user.isAdmin) }
   },
 
@@ -101,9 +103,12 @@ export const authService = {
   async forgotPassword(email: string): Promise<string> {
     const user = await prisma.user.findUnique({ where: { email } })
     const token = jwt.sign({ email, purpose: 'reset-password' }, JWT_SECRET, { expiresIn: '1h' })
-    // If staging/production domain is set in VITE_API_URL or config, we can map to it, but localhost is great for testing
     const baseUrl = process.env.NODE_ENV === 'production' ? 'https://fresiaflores.com.br' : 'http://localhost:5173'
-    return `${baseUrl}/recuperar-senha?token=${token}`
+    const resetLink = `${baseUrl}/recuperar-senha?token=${token}`
+    if (user) {
+      emailService.sendPasswordReset(user.email, user.name, resetLink).catch(() => {})
+    }
+    return resetLink
   },
 
   async resetPassword(token: string, newPassword: string): Promise<void> {

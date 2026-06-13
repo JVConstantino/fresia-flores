@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Trash2, Edit2 } from 'lucide-react'
 
 interface Column<T> {
@@ -183,7 +184,7 @@ export function DataTable<T extends { id: number | string }>({
       )}
 
       {filters && filters.length > 0 && (
-        <div className="flex gap-2 sm:flex-wrap overflow-x-auto bg-white p-3 rounded-lg border border-ink-200 whitespace-nowrap">
+        <div className="flex gap-2 sm:flex-wrap overflow-x-auto bg-white p-3 rounded-lg whitespace-nowrap">
           {filters.map((filter, idx) => (
             <div key={idx} className="flex items-center gap-2 shrink-0">
               {filter.element}
@@ -193,7 +194,7 @@ export function DataTable<T extends { id: number | string }>({
       )}
 
       {selectedIds.size > 0 && (
-        <div className="bg-lilac-50 border border-lilac-200 rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 sm:justify-between">
+        <div className="bg-lilac-50 rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 sm:justify-between">
           <span className="text-sm font-medium text-lilac-700">
             {selectedIds.size} item(ns) selecionado(s)
           </span>
@@ -223,10 +224,10 @@ export function DataTable<T extends { id: number | string }>({
         </div>
       )}
 
-      <Card className="overflow-hidden min-w-0">
+      <Card className="overflow-hidden min-w-0 border-0 shadow-none rounded-lg">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px]">
-            <thead className="bg-ink-100 border-b border-ink-200">
+            <thead className="bg-ink-50">
               <tr>
                 {isSelectable && (
                   <th className="px-4 py-3 text-left w-10">
@@ -239,7 +240,7 @@ export function DataTable<T extends { id: number | string }>({
                 {columns.map(col => (
                   <th
                     key={String(col.key)}
-                      className="px-4 sm:px-6 py-3 text-left text-sm font-semibold text-ink-700 cursor-pointer hover:bg-ink-200"
+                      className="px-4 sm:px-6 py-3 text-left text-sm font-semibold text-ink-700 cursor-pointer hover:bg-ink-100"
                     onClick={() => col.sortable && (sortKey === col.key ? setSortDesc(!sortDesc) : (setSortKey(col.key), setSortDesc(false)))}
                   >
                     {col.label}
@@ -257,13 +258,21 @@ export function DataTable<T extends { id: number | string }>({
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={colSpan} className="px-6 py-8 text-center text-ink-500">
-                    <div className="flex justify-center">
-                      <div className="animate-pulse text-sm">Carregando...</div>
-                    </div>
-                  </td>
-                </tr>
+                Array.from({ length: pageSize > 5 ? 5 : pageSize }).map((_, i) => (
+                  <tr key={i} className="border-b border-ink-100">
+                    {isSelectable && (
+                      <td className="px-4 py-3.5"><Skeleton className="w-4 h-4 rounded" /></td>
+                    )}
+                    {columns.map((col) => (
+                      <td key={String(col.key)} className="px-4 sm:px-6 py-3.5">
+                        <Skeleton className="h-4 w-full max-w-[180px]" style={{ width: `${60 + Math.random() * 40}%` }} />
+                      </td>
+                    ))}
+                    {(onEdit || onDelete) && (
+                      <td className="px-6 py-3.5"><Skeleton className="h-4 w-16" /></td>
+                    )}
+                  </tr>
+                ))
               ) : paged.length === 0 ? (
                 <tr>
                   <td colSpan={colSpan} className="px-6 py-8 text-center text-ink-500">

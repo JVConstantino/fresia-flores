@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Search, Users, ShieldOff, Shield } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { adminUserService, type AdminUser } from '@/services/adminUserService'
 import { UserDrawer } from '@/components/admin/UserDrawer'
 import { toast } from 'sonner'
@@ -175,7 +176,7 @@ export function UsersPage() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white rounded-xl border border-ink-200 overflow-x-auto">
+        <div className="bg-white rounded-lg overflow-x-auto">
           <table className="w-full min-w-[860px] text-sm">
             <thead>
               <tr className="border-b border-ink-100 bg-ink-50">
@@ -294,10 +295,12 @@ export function UsersPage() {
         onUserUpdated={load}
       />
 
-      {showCreate && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-xl border border-ink-200 p-5 space-y-3">
-            <h3 className="text-lg font-semibold text-ink-800">Cadastrar usuário</h3>
+      <Dialog open={showCreate} onOpenChange={() => setShowCreate(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Cadastrar usuário</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
             <input value={createName} onChange={(e) => setCreateName(e.target.value)} placeholder="Nome" className="w-full px-3 py-2 border border-ink-200 rounded-lg text-sm" />
             <input value={createEmail} onChange={(e) => setCreateEmail(e.target.value)} placeholder="Email" className="w-full px-3 py-2 border border-ink-200 rounded-lg text-sm" />
             <input value={createPhone} onChange={(e) => setCreatePhone(e.target.value)} placeholder="Telefone (opcional)" className="w-full px-3 py-2 border border-ink-200 rounded-lg text-sm" />
@@ -306,17 +309,17 @@ export function UsersPage() {
               <option value="buyer">Comprador</option>
               <option value="admin">Admin</option>
             </select>
-            <div className="flex gap-2 pt-2">
-              <button onClick={handleCreateUser} disabled={creating} className="flex-1 px-4 py-2 bg-lilac-500 text-white rounded-lg text-sm font-semibold hover:bg-lilac-600 disabled:bg-lilac-300">
-                {creating ? 'Criando...' : 'Criar usuário'}
-              </button>
-              <button onClick={() => setShowCreate(false)} className="flex-1 px-4 py-2 border border-ink-200 text-ink-700 rounded-lg text-sm">
-                Cancelar
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+          <div className="flex gap-2 pt-1">
+            <button onClick={handleCreateUser} disabled={creating} className="flex-1 px-4 py-2 bg-lilac-500 text-white rounded-lg text-sm font-semibold hover:bg-lilac-600 disabled:bg-lilac-300">
+              {creating ? 'Criando...' : 'Criar usuário'}
+            </button>
+            <button onClick={() => setShowCreate(false)} className="flex-1 px-4 py-2 border border-ink-200 text-ink-700 rounded-lg text-sm">
+              Cancelar
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   )
 }

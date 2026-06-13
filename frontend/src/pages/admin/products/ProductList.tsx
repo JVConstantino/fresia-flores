@@ -5,11 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { adminProductService } from '@/services/adminProductService'
 import { adminCategoryService } from '@/services/adminCategoryService'
-import { useNavigate } from 'react-router-dom'
+import { ProductModal } from './ProductForm'
 import { toast } from 'sonner'
 
 export function ProductList() {
-  const navigate = useNavigate()
+  const [modal, setModal] = useState<{ open: boolean; productId: number | null }>({ open: false, productId: null })
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -218,15 +218,22 @@ export function ProductList() {
         columns={columns}
         loading={loading}
         filters={filters}
-        onNewClick={() => navigate('/admin/produtos/novo')}
+        onNewClick={() => setModal({ open: true, productId: null })}
         newLabel="Novo Produto"
-        onEdit={(p: any) => navigate(`/admin/produtos/${p.id}`)}
+        onEdit={(p: any) => setModal({ open: true, productId: p.id })}
         onDelete={handleDelete}
         bulkActions={[
           { label: 'Ativar selecionados', onClick: (items) => handleBulkStatus(items, true), variant: 'outline' },
           { label: 'Inativar selecionados', onClick: (items) => handleBulkStatus(items, false), variant: 'outline' },
         ]}
         searchPlaceholder="Buscar por nome..."
+      />
+
+      <ProductModal
+        productId={modal.productId}
+        open={modal.open}
+        onClose={() => setModal({ open: false, productId: null })}
+        onSaved={loadProducts}
       />
     </AdminLayout>
   )

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { BlurFade } from '@/components/ui/blur-fade'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/axios'
 import { toast } from 'sonner'
@@ -429,6 +430,7 @@ export function ContaPage() {
             </div>
 
             {/* Tab Content */}
+            <BlurFade key={activeTab} delay={0.05}>
             {activeTab === 'orders' && (
               <div className="space-y-4 py-4 md:py-0">
                 <h2 className="text-xl md:text-2xl font-bold text-ink-800 mb-4 md:mb-6">Meus Pedidos</h2>
@@ -732,6 +734,7 @@ export function ContaPage() {
                 )}
               </div>
             )}
+            </BlurFade>
           </div>
         </div>
       </div>

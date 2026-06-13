@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, CheckCircle, Truck, Package, XCircle, MapPin, CreditC
 import { toast } from 'sonner'
 import { Layout } from '@/components/layout/Layout'
 import { Button } from '@/components/ui/button'
+import { paymentMethodLabel } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { PixPayment } from '@/components/features/PixPayment'
 import { CreditCardForm } from '@/components/features/CreditCardForm'
@@ -600,7 +601,7 @@ export function OrderDetailPage() {
               <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-500 mb-3 flex items-center gap-1">
                 <CreditCard size={14} /> Pagamento
               </h2>
-              <p className="text-sm text-ink-700 capitalize">{order.paymentMethod === 'pix' ? 'PIX' : 'Cartão de crédito'}</p>
+              <p className="text-sm text-ink-700">{paymentMethodLabel(order.paymentMethod)}</p>
               <p className="text-xs text-ink-500 mt-1">
                 Status: <span className={`font-medium ${
                   order.paymentStatus === 'paid' || order.paymentStatus === 'approved' ? 'text-green-600'

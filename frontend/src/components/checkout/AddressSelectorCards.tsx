@@ -172,11 +172,10 @@ export function AddressSelectorCards({ selectedAddressId, onSelectAddress }: Add
                   <button
                     key={addr.id}
                     onClick={() => onSelectAddress(addr.id, addr)}
-                    className={`p-4 border-2 rounded-lg text-left transition-colors ${
-                      selectedAddressId === addr.id
+                    className={`p-4 border-2 rounded-lg text-left transition-colors ${selectedAddressId === addr.id
                         ? 'border-lilac-500 bg-lilac-50'
                         : 'border-ink-200 hover:border-ink-300'
-                    }`}
+                      }`}
                   >
                     {addr.isDefault && (
                       <p className="text-xs font-semibold text-lilac-600 mb-1">● PADRÃO</p>

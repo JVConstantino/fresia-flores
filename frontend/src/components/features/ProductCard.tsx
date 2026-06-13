@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlist } from '@/hooks/useWishlist'
 import { toast } from 'sonner'
+import { motion } from 'motion/react'
 
 interface ProductCardProps {
   id: number
@@ -55,6 +56,7 @@ export function ProductCard({
   }
 
   return (
+    <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }} className="h-full">
     <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
       {/* Imagem — proporção 3:4 */}
       <div
@@ -139,5 +141,6 @@ export function ProductCard({
         </div>
       </div>
     </Card>
+    </motion.div>
   )
 }

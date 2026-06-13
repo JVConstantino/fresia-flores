@@ -1,56 +1,57 @@
-import { ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUp, ArrowDown, type LucideIcon } from 'lucide-react'
+import { NumberTicker } from '@/components/ui/number-ticker'
 
 interface StatCardProps {
   label: string
   value: string | number
   change?: number
   changeLabel?: string
-  icon?: 'a' | 'b' | 'c' | 'd'
+  icon?: LucideIcon
+  iconColor?: 'lilac' | 'forest' | 'petal' | 'leaf'
 }
 
-const ICON_COLORS = {
-  a: 'bg-lilac-500',
-  b: 'bg-forest-600',
-  c: 'bg-petal-400',
-  d: 'bg-leaf-500'
+const ICON_BG: Record<string, string> = {
+  lilac: 'bg-lilac-100 text-lilac-600',
+  forest: 'bg-blue-50 text-blue-600',
+  petal: 'bg-petal-100 text-petal-500',
+  leaf: 'bg-leaf-50 text-leaf-600',
 }
 
-const TREND_COLORS = {
-  up: 'bg-leaf-50 text-leaf-600',
-  down: 'bg-petal-50 text-petal-600'
-}
+export function StatCard({ label, value, change, changeLabel, icon: Icon, iconColor = 'lilac' }: StatCardProps) {
+  const isPositive = change !== undefined && change > 0
+  const isNumeric = typeof value === 'number'
 
-export function StatCard({ label, value, change, changeLabel, icon = 'a' }: StatCardProps) {
-  const isPositive = change && change > 0
-  
   return (
-    <div className="bg-white border border-ink-200 rounded-lg p-5 flex flex-col gap-3">
-      {/* Top: Icon + Menu */}
+    <div className="bg-white rounded-lg p-5 flex flex-col gap-3 transition-colors hover:bg-ink-50/60">
       <div className="flex items-start justify-between">
-        <div className={`w-10 h-10 rounded-md flex items-center justify-center text-white text-lg ${ICON_COLORS[icon]}`}>
-          ●
-        </div>
-        <button className="text-ink-500 hover:text-ink-900 text-lg leading-none">⋯</button>
+        {Icon ? (
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${ICON_BG[iconColor]}`}>
+            <Icon size={18} />
+          </div>
+        ) : (
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${ICON_BG[iconColor]}`} />
+        )}
+        {change !== undefined && (
+          <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+            isPositive ? 'bg-leaf-50 text-leaf-600' : 'bg-petal-50 text-petal-600'
+          }`}>
+            {isPositive ? <ArrowUp size={10} /> : <ArrowDown size={10} />}
+            <span>{Math.abs(change)}%</span>
+          </div>
+        )}
       </div>
 
-      {/* Label */}
       <div className="text-xs text-ink-500 font-medium">{label}</div>
 
-      {/* Value in Display Font */}
-      <div className="font-display text-3xl font-medium text-ink-900 leading-tight">
-        {value}
+      <div className="font-display text-3xl font-medium text-ink-900 leading-tight tabular-nums">
+        {isNumeric ? (
+          <NumberTicker value={value as number} className="font-display text-3xl font-medium text-ink-900" />
+        ) : (
+          value
+        )}
       </div>
 
-      {/* Trend Badge */}
-      {change !== undefined && (
-        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold w-fit ${
-          isPositive ? TREND_COLORS.up : TREND_COLORS.down
-        }`}>
-          {isPositive ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
-          <span>{Math.abs(change)}%</span>
-        </div>
-      )}
-      {changeLabel && <div className="text-xs text-ink-500">{changeLabel}</div>}
+      {changeLabel && <div className="text-xs text-ink-400">{changeLabel}</div>}
     </div>
   )
 }

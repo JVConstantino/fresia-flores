@@ -293,7 +293,7 @@ export function WebhooksPage() {
             </div>
             <div>
               <label className="text-sm font-medium text-ink-700">Eventos</label>
-              <div className="grid grid-cols-2 gap-2 mt-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1.5">
                 {EVENT_OPTIONS.map(opt => (
                   <label key={opt.value} className="flex items-center gap-2 text-sm text-ink-700 cursor-pointer">
                     <input

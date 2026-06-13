@@ -190,7 +190,7 @@ export function InventoryPage() {
         {loading ? (
           <div className="text-center py-12 text-ink-500">Carregando...</div>
         ) : (
-        <div className="bg-white rounded-xl border border-ink-200 overflow-x-auto">
+        <div className="bg-white rounded-lg overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead>
                 <tr className="border-b border-ink-100 bg-ink-50">

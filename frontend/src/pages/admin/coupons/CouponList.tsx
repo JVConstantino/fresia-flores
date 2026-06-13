@@ -3,14 +3,14 @@ import { AdminLayout } from '@/components/admin/AdminLayout'
 import { DataTable } from '@/components/admin/DataTable'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { adminCouponService } from '@/services/adminCouponService'
-import { useNavigate } from 'react-router-dom'
+import { CouponModal } from './CouponForm'
 import { toast } from 'sonner'
 
 export function CouponList() {
-  const navigate = useNavigate()
   const [coupons, setCoupons] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
+  const [modal, setModal] = useState<{ open: boolean; couponId: number | null }>({ open: false, couponId: null })
 
   useEffect(() => {
     loadCoupons()
@@ -127,11 +127,18 @@ export function CouponList() {
         columns={columns}
         loading={loading}
         filters={filters}
-        onNewClick={() => navigate('/admin/cupons/novo')}
+        onNewClick={() => setModal({ open: true, couponId: null })}
         newLabel="Novo Cupom"
-        onEdit={(c: any) => navigate(`/admin/cupons/${c.id}`)}
+        onEdit={(c: any) => setModal({ open: true, couponId: c.id })}
         onDelete={handleDelete}
         searchPlaceholder="Buscar por código..."
+      />
+
+      <CouponModal
+        couponId={modal.couponId}
+        open={modal.open}
+        onClose={() => setModal({ open: false, couponId: null })}
+        onSaved={loadCoupons}
       />
     </AdminLayout>
   )

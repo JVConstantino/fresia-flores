@@ -4,6 +4,7 @@ import { DataTable } from '@/components/admin/DataTable'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { adminOrderService } from '@/services/adminOrderService'
 import { OrderDrawer } from '@/components/admin/OrderDrawer'
+import { paymentMethodLabel } from '@/lib/utils'
 import { toast } from 'sonner'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -110,7 +111,7 @@ export function OrderList() {
       key: 'paymentMethod',
       label: 'Pagamento',
       render: (value: string) => (
-        <span className="text-xs text-ink-500">{value === 'pix' ? 'PIX' : 'Cartão'}</span>
+        <span className="text-xs text-ink-500">{paymentMethodLabel(value)}</span>
       )
     },
     {

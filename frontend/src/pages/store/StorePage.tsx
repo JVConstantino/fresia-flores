@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { ProductCard } from '@/components/features/ProductCard'
 import { QuickViewDialog } from '@/components/features/QuickViewDialog'
+import { BlurFade } from '@/components/ui/blur-fade'
+import { AnimatedGridPattern } from '@/components/ui/animated-grid-pattern'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { productService, type Product } from '@/services/productService'
@@ -116,14 +118,16 @@ export function StorePage() {
         {/* Banner de categoria */}
         {selectedCategory ? (
           <div className="h-40 sm:h-48 bg-gradient-to-r from-lilac-400 to-petal-400 flex items-end justify-start px-4 sm:px-7 py-7 sm:py-10 text-white relative overflow-hidden">
+            <AnimatedGridPattern numSquares={20} maxOpacity={0.06} duration={5} className="absolute inset-0 text-white [mask-image:radial-gradient(ellipse,white_30%,transparent_70%)]" />
             <div className="relative z-10">
               <h1 className="text-3xl sm:text-4xl font-display font-semibold">{selectedCategory.name}</h1>
               <p className="text-white/80 text-sm mt-1">{selectedCategory._count.products} produtos</p>
             </div>
           </div>
         ) : (
-          <div className="h-40 sm:h-48 bg-gradient-to-r from-lilac-500 to-petal-400 flex items-center justify-center text-white text-center px-4">
-            <div>
+          <div className="h-40 sm:h-48 bg-gradient-to-r from-lilac-500 to-petal-400 flex items-center justify-center text-white text-center px-4 relative overflow-hidden">
+            <AnimatedGridPattern numSquares={20} maxOpacity={0.06} duration={5} className="absolute inset-0 text-white [mask-image:radial-gradient(ellipse,white_30%,transparent_70%)]" />
+            <div className="relative z-10">
               <h1 className="text-3xl sm:text-4xl font-display font-semibold">Nossa Loja</h1>
               <p className="text-white/80 text-sm mt-1">Flores frescas, entregadas com carinho</p>
             </div>
@@ -250,18 +254,19 @@ export function StorePage() {
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
-                {displayedProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    name={product.name}
-                    slug={product.slug}
-                    image={typeof product.images === 'string' ? JSON.parse(product.images)[0] : product.images?.[0]}
-                    price={Number(product.price)}
-                    category={product.category?.name || ''}
-                    stock={product.stock}
-                    onQuickView={() => setQuickViewProduct(product)}
-                  />
+                {displayedProducts.map((product, i) => (
+                  <BlurFade key={product.id} delay={i * 0.04} inView>
+                    <ProductCard
+                      id={product.id}
+                      name={product.name}
+                      slug={product.slug}
+                      image={typeof product.images === 'string' ? JSON.parse(product.images)[0] : product.images?.[0]}
+                      price={Number(product.price)}
+                      category={product.category?.name || ''}
+                      stock={product.stock}
+                      onQuickView={() => setQuickViewProduct(product)}
+                    />
+                  </BlurFade>
                 ))}
               </div>
 

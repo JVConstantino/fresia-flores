@@ -102,18 +102,17 @@ router.post('/sale', async (req: Request, res: Response, next: NextFunction) => 
 })
 
 // GET /admin/pdv/customers?search= — buscar usuários para venda PDV
+// Sem busca: retorna os clientes mais recentes (sugestão ao focar o campo).
 router.get('/customers', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const search = (req.query.search as string) || ''
-    if (!search) return res.json([])
+    const where = search
+      ? { OR: [{ name: { contains: search } }, { email: { contains: search } }] }
+      : {}
     const users = await prisma.user.findMany({
-      where: {
-        OR: [
-          { name: { contains: search } },
-          { email: { contains: search } },
-        ],
-      },
+      where,
       take: 10,
+      orderBy: { createdAt: 'desc' },
       select: { id: true, name: true, email: true, phone: true },
     })
     res.json(users)

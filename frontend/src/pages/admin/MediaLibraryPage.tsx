@@ -101,7 +101,7 @@ export function MediaLibraryPage() {
         {loading ? (
           <div className="text-center py-16 text-ink-400">Carregando...</div>
         ) : items.length === 0 ? (
-          <div className="text-center py-16 text-ink-400 bg-white border border-ink-200 rounded-xl">
+          <div className="text-center py-16 text-ink-400 bg-white rounded-lg">
             <ImageIcon className="mx-auto mb-3 opacity-50" size={48} />
             <p>Nenhuma mídia ainda</p>
           </div>

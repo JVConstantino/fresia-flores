@@ -8,22 +8,23 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ title, description, actions }: AdminHeaderProps) {
   return (
-    <div className="flex flex-col gap-4">
-      {/* Title Section */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-semibold text-ink-900">{title}</h1>
-        {description && (
-          <p className="text-sm text-ink-500 mt-1">
-            {description}
-            <span className="text-leaf-600 ml-1">● Ao vivo</span>
-          </p>
-        )}
-      </div>
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-ink-900 leading-tight">{title}</h1>
+          {description && (
+            <p className="text-sm text-ink-500 mt-1.5 flex items-center gap-1.5">
+              {description}
+              <span className="inline-flex items-center gap-1 text-leaf-600 text-xs font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-leaf-500 animate-pulse" />
+                Ao vivo
+              </span>
+            </p>
+          )}
+        </div>
 
-      {/* Top Actions */}
-      <div className="flex items-center justify-start sm:justify-end gap-2 sm:gap-4 overflow-x-auto">
         {actions && (
-          <div className="flex items-center gap-2 min-w-max">
+          <div className="flex items-center gap-2 shrink-0">
             {actions}
           </div>
         )}

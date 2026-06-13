@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Package, User, MapPin, CreditCard, MessageSquare, Truck } from 'lucide-react'
 import { toast } from 'sonner'
 import { adminOrderService } from '@/services/adminOrderService'
+import { paymentMethodLabel } from '@/lib/utils'
 
 interface OrderDrawerProps {
   orderId: number | null
@@ -262,7 +263,7 @@ export function OrderDrawer({ orderId, onClose, onStatusUpdated }: OrderDrawerPr
                 <CreditCard size={12} /> Pagamento
               </p>
               <div className="text-sm space-y-1">
-                <p className="text-ink-700 capitalize">{order.paymentMethod === 'pix' ? 'PIX' : 'Cartão de crédito'}</p>
+                <p className="text-ink-700">{paymentMethodLabel(order.paymentMethod)}</p>
                 <p className="text-ink-500">
                   Status: <span className={`font-medium ${
                     order.paymentStatus === 'paid' || order.paymentStatus === 'approved' ? 'text-green-600'

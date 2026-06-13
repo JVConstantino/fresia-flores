@@ -6,6 +6,12 @@
   body {
     @apply font-body text-ink-800 bg-ink-50;
   }
+  .theme {
+    --animate-marquee: marquee var(--duration) infinite linear;
+    --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+    --animate-shiny-text: shiny-text 8s infinite;
+    --animate-shine: shine var(--duration) infinite linear;
+  }
 }
 
 /* Overlay claro para dialogs/sheets — Tom Frésia */
@@ -13,4 +19,42 @@
   background-color: rgba(31, 28, 38, 0.25) !important;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+}
+
+@theme inline {
+  @keyframes marquee {
+  from {
+    transform: translateX(0);
+    }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+    }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes shiny-text {
+  0%, 90%, 100% {
+    background-position: calc(-100% - var(--shiny-width)) 0;
+    }
+  30%, 60% {
+    background-position: calc(100% + var(--shiny-width)) 0;
+    }
+  }
+  @keyframes shine {
+  0% {
+    background-position: 0% 0%;
+    }
+  50% {
+    background-position: 100% 100%;
+    }
+  to {
+    background-position: 0% 0%;
+    }
+  }
 }

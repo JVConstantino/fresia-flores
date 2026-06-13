@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AdminLayout } from '@/components/admin/AdminLayout'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { SectionCard } from '@/components/admin/SectionCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { adminCouponService } from '@/services/adminCouponService'
 import { toast } from 'sonner'
+import { Tag, Calendar } from 'lucide-react'
 
 const couponSchema = z.object({
   code: z.string().min(1, 'Código é obrigatório').max(20),
@@ -25,21 +26,18 @@ const couponSchema = z.object({
 
 type CouponFormData = z.infer<typeof couponSchema>
 
-export function CouponForm() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const isEditing = !!id
+interface CouponModalProps {
+  couponId: number | null
+  open: boolean
+  onClose: () => void
+  onSaved: () => void
+}
+
+export function CouponModal({ couponId, open, onClose, onSaved }: CouponModalProps) {
+  const isEditing = couponId !== null
   const [loading, setLoading] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors }
-  } = useForm<CouponFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<CouponFormData>({
     resolver: zodResolver(couponSchema) as any,
     defaultValues: { isActive: true, discountType: 'percentage' }
   })
@@ -47,14 +45,17 @@ export function CouponForm() {
   const discountType = watch('discountType')
 
   useEffect(() => {
-    if (isEditing) {
-      loadCoupon()
+    if (!open) return
+    if (couponId !== null) {
+      loadCoupon(couponId)
+    } else {
+      reset({ isActive: true, discountType: 'percentage', code: '', description: '' })
     }
-  }, [id])
+  }, [open, couponId])
 
-  const loadCoupon = async () => {
+  const loadCoupon = async (id: number) => {
     try {
-      const coupon = await adminCouponService.getById(parseInt(id!))
+      const coupon = await adminCouponService.getById(id)
       reset({
         code: coupon.code,
         description: coupon.description || '',
@@ -66,9 +67,9 @@ export function CouponForm() {
         validTo: new Date(coupon.validTo).toISOString().split('T')[0],
         isActive: coupon.isActive
       })
-    } catch (err: any) {
+    } catch {
       toast.error('Erro ao carregar cupom')
-      navigate('/admin/cupons')
+      onClose()
     }
   }
 
@@ -76,13 +77,14 @@ export function CouponForm() {
     try {
       setLoading(true)
       if (isEditing) {
-        await adminCouponService.update(parseInt(id!), data)
-        toast.success('Cupom atualizado com sucesso')
+        await adminCouponService.update(couponId!, data)
+        toast.success('Cupom atualizado')
       } else {
         await adminCouponService.create(data)
-        toast.success('Cupom criado com sucesso')
+        toast.success('Cupom criado')
       }
-      navigate('/admin/cupons')
+      onSaved()
+      onClose()
     } catch (err: any) {
       toast.error(err?.response?.data?.error || 'Erro ao salvar cupom')
     } finally {
@@ -91,94 +93,85 @@ export function CouponForm() {
   }
 
   return (
-    <AdminLayout
-      title={isEditing ? 'Editar Cupom' : 'Novo Cupom'}
-      description={isEditing ? `Editando cupom #${id}` : 'Criar novo cupom de desconto'}
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl space-y-5">
-        <div className="bg-white border border-ink-200 rounded-lg p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-ink-800 uppercase tracking-wider">Informações do Cupom</h3>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-1">Código *</label>
-              <Input
-                {...register('code')}
-                placeholder="FRETE10"
-                className="uppercase font-mono"
-              />
-              {errors.code && <p className="text-xs text-red-500 mt-1">{errors.code.message}</p>}
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display">{isEditing ? 'Editar Cupom' : 'Novo Cupom'}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <SectionCard title="Informações do Cupom" icon={<Tag size={15} />} className="border border-ink-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ink-700 mb-1">Código *</label>
+                <Input {...register('code')} placeholder="FRETE10" className="uppercase font-mono" />
+                {errors.code && <p className="text-xs text-red-500 mt-1">{errors.code.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ink-700 mb-1">Tipo de Desconto *</label>
+                <Select value={discountType} onValueChange={(v: any) => setValue('discountType', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percentage">Percentual (%)</SelectItem>
+                    <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ink-700 mb-1">Tipo de Desconto *</label>
-              <Select value={discountType} onValueChange={(v: any) => setValue('discountType', v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">Percentual (%)</SelectItem>
-                  <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
-                </SelectContent>
-              </Select>
+              <label className="block text-sm font-medium text-ink-700 mb-1">Descrição</label>
+              <Input {...register('description')} placeholder="Frete grátis para novos clientes" />
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ink-700 mb-1">
+                  Desconto {discountType === 'percentage' ? '(%)' : '(R$)'} *
+                </label>
+                <Input {...register('discountValue')} type="number" step="0.01" placeholder="10" />
+                {errors.discountValue && <p className="text-xs text-red-500 mt-1">{errors.discountValue.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ink-700 mb-1">Pedido Mínimo (R$)</label>
+                <Input {...register('minOrderValue')} type="number" step="0.01" placeholder="Sem mínimo" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ink-700 mb-1">Limite de Usos</label>
+                <Input {...register('maxUses')} type="number" placeholder="Ilimitado" />
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Validade & Ativação" icon={<Calendar size={15} />} className="border border-ink-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ink-700 mb-1">Data Início *</label>
+                <Input {...register('validFrom')} type="date" />
+                {errors.validFrom && <p className="text-xs text-red-500 mt-1">{errors.validFrom.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ink-700 mb-1">Data Fim *</label>
+                <Input {...register('validTo')} type="date" />
+                {errors.validTo && <p className="text-xs text-red-500 mt-1">{errors.validTo.message}</p>}
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Checkbox {...register('isActive')} id="isActive" />
+              <span className="text-sm font-medium">Cupom ativo</span>
+            </label>
+          </SectionCard>
+
+          <div className="flex gap-2 pt-1">
+            <Button type="submit" disabled={loading} className="flex-1 bg-lilac-500 hover:bg-lilac-600 text-white">
+              {loading ? 'Salvando…' : isEditing ? 'Salvar alterações' : 'Criar Cupom'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-ink-700 mb-1">Descrição</label>
-            <Input {...register('description')} placeholder="Frete grátis para novos clientes" />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-1">
-                Desconto {discountType === 'percentage' ? '(%)' : '(R$)'} *
-              </label>
-              <Input {...register('discountValue')} type="number" step="0.01" placeholder="10" />
-              {errors.discountValue && <p className="text-xs text-red-500 mt-1">{errors.discountValue.message}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-1">Pedido Mínimo (R$)</label>
-              <Input {...register('minOrderValue')} type="number" step="0.01" placeholder="50.00" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-1">Limite de Usos</label>
-              <Input {...register('maxUses')} type="number" placeholder="Ilimitado" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-ink-200 rounded-lg p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-ink-800 uppercase tracking-wider">Validade</h3>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-1">Data Início *</label>
-              <Input {...register('validFrom')} type="date" />
-              {errors.validFrom && <p className="text-xs text-red-500 mt-1">{errors.validFrom.message}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ink-700 mb-1">Data Fim *</label>
-              <Input {...register('validTo')} type="date" />
-              {errors.validTo && <p className="text-xs text-red-500 mt-1">{errors.validTo.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Checkbox {...register('isActive')} id="isActive" />
-            <label htmlFor="isActive" className="text-sm font-medium">Ativo</label>
-          </div>
-        </div>
-
-        <div className="flex gap-2 pt-2">
-          <Button type="submit" disabled={loading} className="bg-lilac-500 hover:bg-lilac-600">
-            {loading ? 'Salvando...' : isEditing ? 'Atualizar Cupom' : 'Criar Cupom'}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => navigate('/admin/cupons')}>
-            Cancelar
-          </Button>
-        </div>
-      </form>
-    </AdminLayout>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

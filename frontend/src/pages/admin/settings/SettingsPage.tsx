@@ -66,7 +66,7 @@ export function SettingsPage() {
         <>
           {error && <div className="p-4 bg-red-50 text-red-600 rounded-lg mb-4">{error}</div>}
 
-      <div className="bg-white border border-ink-200 rounded-xl p-6">
+      <div className="bg-white rounded-lg p-6">
         <form id="settings-form" onSubmit={handleSave} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">

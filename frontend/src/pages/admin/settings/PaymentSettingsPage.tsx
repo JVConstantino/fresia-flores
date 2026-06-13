@@ -71,7 +71,7 @@ export function PaymentSettingsPage() {
         <>
           {error && <div className="p-4 bg-red-50 text-red-600 rounded-lg mb-4">{error}</div>}
 
-      <div className="bg-white border border-ink-200 rounded-xl p-6 space-y-8">
+      <div className="bg-white rounded-lg p-6 space-y-8">
         {/* Integração Mercado Pago */}
         <section>
           <h3 className="text-lg font-display text-ink-800 mb-4">Credenciais Mercado Pago</h3>

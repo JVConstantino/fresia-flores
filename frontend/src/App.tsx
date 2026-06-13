@@ -18,17 +18,15 @@ import { OrderDetailPage } from '@/pages/account/OrderDetailPage'
 import { AdminDashboard } from '@/pages/admin/AdminDashboard'
 import { AdminFretesPage } from '@/pages/admin/AdminFretesPage'
 import { ProductList } from '@/pages/admin/products/ProductList'
-import { ProductForm } from '@/pages/admin/products/ProductForm'
 import { CategoryList } from '@/pages/admin/categories/CategoryList'
 import { PromotionList } from '@/pages/admin/promotions/PromotionList'
-import { PromotionForm } from '@/pages/admin/promotions/PromotionForm'
 import { CouponList } from '@/pages/admin/coupons/CouponList'
-import { CouponForm } from '@/pages/admin/coupons/CouponForm'
 import { OrderList } from '@/pages/admin/orders/OrderList'
 import { NewsletterPage } from '@/pages/admin/NewsletterPage'
 import { TestimonialsPage } from '@/pages/admin/TestimonialsPage'
 import { SettingsPage } from '@/pages/admin/settings/SettingsPage'
 import { PaymentSettingsPage } from '@/pages/admin/settings/PaymentSettingsPage'
+import { EmailSettingsPage } from '@/pages/admin/settings/EmailSettingsPage'
 import { WebhooksPage } from '@/pages/admin/WebhooksPage'
 import { CustomersPage } from '@/pages/admin/CustomersPage'
 import { InventoryPage } from '@/pages/admin/InventoryPage'
@@ -37,7 +35,6 @@ import { ContentPage } from '@/pages/admin/ContentPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
 import { MediaLibraryPage } from '@/pages/admin/MediaLibraryPage'
 import { PostList } from '@/pages/admin/blog/PostList'
-import { PostForm } from '@/pages/admin/blog/PostForm'
 import { SupplyList } from '@/pages/admin/supplies/SupplyList'
 import { SupplyDetail } from '@/pages/admin/supplies/SupplyDetail'
 import { PDVPage } from '@/pages/admin/pdv/PDVPage'
@@ -73,20 +70,15 @@ export default function App() {
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       <Route path="/admin/fretes" element={<AdminRoute><AdminFretesPage /></AdminRoute>} />
       <Route path="/admin/produtos" element={<AdminRoute><ProductList /></AdminRoute>} />
-      <Route path="/admin/produtos/novo" element={<AdminRoute><ProductForm /></AdminRoute>} />
-      <Route path="/admin/produtos/:id" element={<AdminRoute><ProductForm /></AdminRoute>} />
       <Route path="/admin/categorias" element={<AdminRoute><CategoryList /></AdminRoute>} />
       <Route path="/admin/promocoes" element={<AdminRoute><PromotionList /></AdminRoute>} />
-      <Route path="/admin/promocoes/nova" element={<AdminRoute><PromotionForm /></AdminRoute>} />
-      <Route path="/admin/promocoes/:id" element={<AdminRoute><PromotionForm /></AdminRoute>} />
       <Route path="/admin/cupons" element={<AdminRoute><CouponList /></AdminRoute>} />
-      <Route path="/admin/cupons/novo" element={<AdminRoute><CouponForm /></AdminRoute>} />
-      <Route path="/admin/cupons/:id" element={<AdminRoute><CouponForm /></AdminRoute>} />
       <Route path="/admin/pedidos" element={<AdminRoute><OrderList /></AdminRoute>} />
       <Route path="/admin/newsletter" element={<AdminRoute><NewsletterPage /></AdminRoute>} />
       <Route path="/admin/depoimentos" element={<AdminRoute><TestimonialsPage /></AdminRoute>} />
       <Route path="/admin/configuracoes" element={<AdminRoute><SettingsPage /></AdminRoute>} />
       <Route path="/admin/pagamentos" element={<AdminRoute><PaymentSettingsPage /></AdminRoute>} />
+      <Route path="/admin/email" element={<AdminRoute><EmailSettingsPage /></AdminRoute>} />
       <Route path="/admin/webhooks" element={<AdminRoute><WebhooksPage /></AdminRoute>} />
       <Route path="/admin/clientes" element={<AdminRoute><CustomersPage /></AdminRoute>} />
       <Route path="/admin/estoque" element={<AdminRoute><InventoryPage /></AdminRoute>} />
@@ -95,8 +87,6 @@ export default function App() {
       <Route path="/admin/usuarios" element={<AdminRoute><UsersPage /></AdminRoute>} />
       <Route path="/admin/midias" element={<AdminRoute><MediaLibraryPage /></AdminRoute>} />
       <Route path="/admin/blog" element={<AdminRoute><PostList /></AdminRoute>} />
-      <Route path="/admin/blog/novo" element={<AdminRoute><PostForm /></AdminRoute>} />
-      <Route path="/admin/blog/:id" element={<AdminRoute><PostForm /></AdminRoute>} />
       <Route path="/admin/suprimentos" element={<AdminRoute><SupplyList /></AdminRoute>} />
       <Route path="/admin/suprimentos/:id" element={<AdminRoute><SupplyDetail /></AdminRoute>} />
       <Route path="/admin/pdv" element={<AdminRoute><PDVPage /></AdminRoute>} />

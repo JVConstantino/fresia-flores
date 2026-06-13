@@ -112,7 +112,7 @@ export function AdminFretesPage() {
 
         <div className="space-y-3">
           {cities.map(city => (
-            <div key={city.id} className="bg-white border border-ink-200 rounded-lg overflow-hidden">
+            <div key={city.id} className="bg-white rounded-lg overflow-hidden">
               <div
                 className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-ink-50 transition-colors"
                 onClick={() => toggleCity(city.id)}

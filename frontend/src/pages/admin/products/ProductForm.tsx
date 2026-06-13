@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { AdminLayout } from '@/components/admin/AdminLayout'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -14,7 +13,8 @@ import { adminProductService } from '@/services/adminProductService'
 import { adminCategoryService } from '@/services/adminCategoryService'
 import { api } from '@/lib/axios'
 import { toast } from 'sonner'
-import { ChevronDown, Upload, X } from 'lucide-react'
+import { Upload, X } from 'lucide-react'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 const productSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -46,40 +46,24 @@ interface Variant {
   images?: string
 }
 
-function Section({ title, open, onToggle, children }: { title: string; open: boolean; onToggle: () => void; children: React.ReactNode }) {
-  return (
-    <div className="border border-ink-200 rounded-lg overflow-hidden">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 bg-ink-50 hover:bg-ink-100 transition-colors"
-      >
-        <h3 className="font-semibold text-ink-800">{title}</h3>
-        <ChevronDown size={20} className={`transform transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-      {open && <div className="p-4 space-y-4 bg-white">{children}</div>}
-    </div>
-  )
+
+interface ProductModalProps {
+  productId: number | null
+  open: boolean
+  onClose: () => void
+  onSaved: () => void
 }
 
-export function ProductForm() {
-  const { id } = useParams()
-  const navigate = useNavigate()
+export function ProductModal({ productId, open, onClose, onSaved }: ProductModalProps) {
+  const isEdit = productId !== null
   const [categories, setCategories] = useState<any[]>([])
-  const [loading, setLoading] = useState(!!id)
+  const [loading, setLoading] = useState(false)
   const [variants, setVariants] = useState<Variant[]>([])
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [mediaPicker, setMediaPicker] = useState<{ open: boolean; target: 'main' | number }>({ open: false, target: 'main' })
   const [uploading, setUploading] = useState(false)
-  const [expandedSections, setExpandedSections] = useState({
-    basic: true,
-    media: false,
-    prices: false,
-    variants: false,
-    seo: false
-  })
 
   const {
     register,
@@ -95,14 +79,20 @@ export function ProductForm() {
   })
 
   useEffect(() => {
-    window.scrollTo(0, 0)
-    if (id) {
+    if (!open) return
+    if (productId !== null) {
       // Carregar categorias primeiro, depois o produto para garantir que o Select tenha as opções
-      loadCategories().then(() => loadProduct())
+      setLoading(true)
+      loadCategories().then(() => loadProduct(productId))
     } else {
       loadCategories()
+      reset({ isActive: true, isFeatured: false, allowCoupons: true, name: '', slug: '', description: '', shortDescription: '' })
+      setVariants([])
+      setTags([])
+      setTagInput('')
+      setUploadedImages([])
     }
-  }, [id])
+  }, [open, productId])
 
   const loadCategories = async () => {
     try {
@@ -115,9 +105,9 @@ export function ProductForm() {
 
 
 
-  const loadProduct = async () => {
+  const loadProduct = async (id: number) => {
     try {
-      const product = await adminProductService.getById(Number(id))
+      const product = await adminProductService.getById(id)
       reset({
         name: product.name ?? '',
         slug: product.slug ?? '',
@@ -151,7 +141,7 @@ export function ProductForm() {
       }
     } catch (err: any) {
       toast.error('Erro ao carregar produto')
-      navigate('/admin/produtos')
+      onClose()
     } finally {
       setLoading(false)
     }
@@ -174,14 +164,15 @@ export function ProductForm() {
         images: uploadedImages.length > 0 ? JSON.stringify(uploadedImages) : (data.images || null),
         variants: variants,
       }
-      if (id) {
-        await adminProductService.update(Number(id), payload)
+      if (isEdit) {
+        await adminProductService.update(productId!, payload)
         toast.success('Produto atualizado com sucesso')
       } else {
         await adminProductService.create(payload)
         toast.success('Produto criado com sucesso')
       }
-      navigate('/admin/produtos')
+      onSaved()
+      onClose()
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Erro ao salvar produto')
     } finally {
@@ -189,9 +180,6 @@ export function ProductForm() {
     }
   }
 
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
-  }
 
   const addVariant = () => {
     setVariants([...variants, { name: '', price: 0, salePrice: null, stock: 0, description: '', images: '' }])
@@ -295,18 +283,20 @@ export function ProductForm() {
     .trim()
 
   return (
-    <AdminLayout
-      title={id ? 'Editar Produto' : 'Novo Produto'}
-      description={id ? 'Atualize os dados do produto' : 'Crie um novo produto'}
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-5 gap-6">
-        <div className="col-span-3 space-y-4">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display">{isEdit ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
+        </DialogHeader>
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-5 gap-6 pt-2">
+        <div className="lg:col-span-3 space-y-2">
+          <Accordion type="multiple" defaultValue={['basic']} className="space-y-3">
           {/* BÁSICO */}
-          <Section
-            title="Informações Básicas"
-            open={expandedSections.basic}
-            onToggle={() => toggleSection('basic')}
-          >
+          <AccordionItem value="basic" className="border border-ink-200 rounded-md overflow-hidden px-0">
+            <AccordionTrigger className="px-4 py-3 bg-ink-50 hover:bg-ink-100 hover:no-underline font-semibold text-ink-800 text-sm [&[data-state=open]]:border-b [&[data-state=open]]:border-ink-200">
+              Informações Básicas
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pt-4 pb-4 space-y-4 bg-white">
             <div>
               <label className="block text-sm font-medium mb-1">Nome *</label>
               <Input {...register('name')} placeholder="Ex: Buquê Rosas Vermelhas" />
@@ -342,14 +332,15 @@ export function ProductForm() {
               </Select>
               {errors.categoryId && <p className="text-red-500 text-xs mt-1">{errors.categoryId.message}</p>}
             </div>
-          </Section>
+          </AccordionContent>
+          </AccordionItem>
 
           {/* MÍDIA */}
-          <Section
-            title="Mídia"
-            open={expandedSections.media}
-            onToggle={() => toggleSection('media')}
-          >
+          <AccordionItem value="media" className="border border-ink-200 rounded-md overflow-hidden px-0">
+            <AccordionTrigger className="px-4 py-3 bg-ink-50 hover:bg-ink-100 hover:no-underline font-semibold text-ink-800 text-sm [&[data-state=open]]:border-b [&[data-state=open]]:border-ink-200">
+              Mídia
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pt-4 pb-4 bg-white">
             <div className="space-y-4">
               <div>
                 <label htmlFor="image-upload" className="block text-sm font-medium mb-2 cursor-pointer">
@@ -412,14 +403,15 @@ export function ProductForm() {
                 <p className="text-xs text-ink-500 mt-1">Array JSON de URLs (substitui upload)</p>
               </div>
             </div>
-          </Section>
+          </AccordionContent>
+          </AccordionItem>
 
           {/* PREÇOS */}
-          <Section
-            title="Preços & Estoque"
-            open={expandedSections.prices}
-            onToggle={() => toggleSection('prices')}
-          >
+          <AccordionItem value="prices" className="border border-ink-200 rounded-md overflow-hidden px-0">
+            <AccordionTrigger className="px-4 py-3 bg-ink-50 hover:bg-ink-100 hover:no-underline font-semibold text-ink-800 text-sm [&[data-state=open]]:border-b [&[data-state=open]]:border-ink-200">
+              Preços &amp; Estoque
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pt-4 pb-4 bg-white">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Preço *</label>
@@ -470,14 +462,15 @@ export function ProductForm() {
                 Permite cupons de desconto
               </label>
             </div>
-          </Section>
+          </AccordionContent>
+          </AccordionItem>
 
           {/* VARIAÇÕES */}
-          <Section
-            title={`Variações ${variants.length > 0 ? `(${variants.length})` : ''}`}
-            open={expandedSections.variants}
-            onToggle={() => toggleSection('variants')}
-          >
+          <AccordionItem value="variants" className="border border-ink-200 rounded-md overflow-hidden px-0">
+            <AccordionTrigger className="px-4 py-3 bg-ink-50 hover:bg-ink-100 hover:no-underline font-semibold text-ink-800 text-sm [&[data-state=open]]:border-b [&[data-state=open]]:border-ink-200">
+              {`Variações ${variants.length > 0 ? `(${variants.length})` : ''}`}
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pt-4 pb-4 bg-white">
             <p className="text-xs text-ink-500 bg-ink-50 rounded p-2">
               Variações permitem oferecer o mesmo produto com diferenças de composição, tamanho ou apresentação, cada uma com preço, estoque e fotos próprios.
             </p>
@@ -657,14 +650,15 @@ export function ProductForm() {
                 ))}
               </div>
             </div>
-          </Section>
+          </AccordionContent>
+          </AccordionItem>
 
           {/* SEO */}
-          <Section
-            title="SEO & Extras"
-            open={expandedSections.seo}
-            onToggle={() => toggleSection('seo')}
-          >
+          <AccordionItem value="seo" className="border border-ink-200 rounded-md overflow-hidden px-0">
+            <AccordionTrigger className="px-4 py-3 bg-ink-50 hover:bg-ink-100 hover:no-underline font-semibold text-ink-800 text-sm [&[data-state=open]]:border-b [&[data-state=open]]:border-ink-200">
+              SEO &amp; Extras
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pt-4 pb-4 bg-white">
             <div>
               <label className="block text-sm font-medium mb-1">Slug</label>
               <Input
@@ -708,12 +702,14 @@ export function ProductForm() {
                 Produto ativo
               </label>
             </div>
-          </Section>
+          </AccordionContent>
+          </AccordionItem>
+          </Accordion>
         </div>
 
         {/* SIDEBAR */}
-        <div className="col-span-2">
-          <div className="sticky top-4 bg-white border border-ink-200 rounded-lg p-4 space-y-4">
+        <div className="lg:col-span-2">
+          <div className="bg-ink-50 rounded-lg p-4 space-y-4">
             <div className="space-y-2">
               <h4 className="font-semibold text-sm text-ink-800">Ações</h4>
               <div className="flex gap-2 flex-col">
@@ -723,7 +719,7 @@ export function ProductForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/admin/produtos')}
+                  onClick={onClose}
                   className="w-full"
                 >
                   Cancelar
@@ -736,7 +732,7 @@ export function ProductForm() {
             <div className="space-y-3">
               <div>
                 <h4 className="font-semibold text-sm text-ink-800 mb-3">Resumo</h4>
-                <div className="bg-ink-50 rounded-lg p-3 space-y-2 text-xs">
+                <div className="bg-white rounded-lg p-3 space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span className="text-ink-600">Nome:</span>
                     <span className="font-medium text-ink-800 truncate ml-2">{watch('name') || '-'}</span>
@@ -769,19 +765,19 @@ export function ProductForm() {
               <div>
                 <h4 className="font-semibold text-sm text-ink-800 mb-3">Configuração</h4>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2 rounded bg-ink-50">
+                  <div className="flex items-center justify-between p-2 rounded bg-white">
                     <span className="text-xs text-ink-600">Ativo</span>
                     <span className={`text-xs font-semibold px-2 py-1 rounded ${watch('isActive') ? 'bg-leaf-100 text-leaf-700' : 'bg-ink-200 text-ink-700'}`}>
                       {watch('isActive') ? '✓ Sim' : '✗ Não'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-2 rounded bg-ink-50">
+                  <div className="flex items-center justify-between p-2 rounded bg-white">
                     <span className="text-xs text-ink-600">Destaque</span>
                     <span className={`text-xs font-semibold px-2 py-1 rounded ${watch('isFeatured') ? 'bg-petal-100 text-petal-600' : 'bg-ink-200 text-ink-700'}`}>
                       {watch('isFeatured') ? '⭐ Sim' : '○ Não'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-2 rounded bg-ink-50">
+                  <div className="flex items-center justify-between p-2 rounded bg-white">
                     <span className="text-xs text-ink-600">Permite cupom</span>
                     <span className={`text-xs font-semibold px-2 py-1 rounded ${watch('allowCoupons') ? 'bg-leaf-100 text-leaf-700' : 'bg-ink-200 text-ink-700'}`}>
                       {watch('allowCoupons') ? '✓ Sim' : '✗ Não'}
@@ -832,6 +828,7 @@ export function ProductForm() {
           }
         }}
       />
-    </AdminLayout>
+      </DialogContent>
+    </Dialog>
   )
 }

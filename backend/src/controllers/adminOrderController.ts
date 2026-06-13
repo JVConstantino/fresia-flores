@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { adminOrderService } from '@/services/adminOrderService'
+import { emailService } from '@/services/emailService'
 
 const router = Router()
 
@@ -24,11 +25,17 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 
 router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const order = await adminOrderService.updateStatus(
-      parseInt(req.params.id as string),
-      req.body.status
-    )
+    const { status } = req.body
+    const order = await adminOrderService.updateStatus(parseInt(req.params.id as string), status)
     res.json(order)
+
+    if (order.customerEmail && order.customerName) {
+      emailService.sendOrderStatus(order.customerEmail, order.customerName, order.id, status).catch(() => {})
+      if (status === 'entregue') {
+        emailService.sendOrderDelivered(order.customerEmail, order.customerName, order.id).catch(() => {})
+        emailService.sendReviewRequest(order.customerEmail, order.customerName, order.id).catch(() => {})
+      }
+    }
   } catch (err) {
     next(err)
   }

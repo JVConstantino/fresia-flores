@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Button } from '@/components/ui/button'
 import { adminPostService, type Post } from '@/services/postService'
+import { PostModal } from './PostForm'
 
 export function PostList() {
-  const navigate = useNavigate()
   const [items, setItems] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [modal, setModal] = useState<{ open: boolean; postId: number | null }>({ open: false, postId: null })
 
   useEffect(() => { load() }, [])
 
@@ -39,7 +39,7 @@ export function PostList() {
   return (
     <AdminLayout title="Blog" description="Gerencie os posts do blog">
       <div className="flex justify-end mb-4">
-        <Button onClick={() => navigate('/admin/blog/novo')} className="gap-2 bg-lilac-500 hover:bg-lilac-600">
+        <Button onClick={() => setModal({ open: true, postId: null })} className="gap-2 bg-lilac-500 hover:bg-lilac-600">
           <Plus size={14} /> Novo Post
         </Button>
       </div>
@@ -47,12 +47,12 @@ export function PostList() {
       {loading ? (
         <div className="text-center py-12 text-ink-400">Carregando...</div>
       ) : items.length === 0 ? (
-        <div className="bg-white border border-ink-200 rounded-xl p-12 text-center text-ink-400">
+        <div className="bg-white rounded-lg p-12 text-center text-ink-400">
           Nenhum post ainda
         </div>
       ) : (
-        <div className="bg-white border border-ink-200 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-lg overflow-x-auto">
+          <table className="w-full text-sm min-w-[560px]">
             <thead>
               <tr className="bg-ink-50 border-b border-ink-100">
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-500">Título</th>
@@ -85,7 +85,7 @@ export function PostList() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex gap-1">
-                      <button onClick={() => navigate(`/admin/blog/${p.id}`)} className="p-2 text-ink-500 hover:text-lilac-600 hover:bg-lilac-50 rounded-md">
+                      <button onClick={() => setModal({ open: true, postId: p.id })} className="p-2 text-ink-500 hover:text-lilac-600 hover:bg-lilac-50 rounded-md">
                         <Edit2 size={14} />
                       </button>
                       <button onClick={() => handleDelete(p)} className="p-2 text-ink-500 hover:text-red-600 hover:bg-red-50 rounded-md">
@@ -99,6 +99,13 @@ export function PostList() {
           </table>
         </div>
       )}
+
+      <PostModal
+        postId={modal.postId}
+        open={modal.open}
+        onClose={() => setModal({ open: false, postId: null })}
+        onSaved={load}
+      />
     </AdminLayout>
   )
 }

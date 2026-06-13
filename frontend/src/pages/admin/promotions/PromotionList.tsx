@@ -3,14 +3,14 @@ import { AdminLayout } from '@/components/admin/AdminLayout'
 import { DataTable } from '@/components/admin/DataTable'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { adminPromotionService } from '@/services/adminPromotionService'
-import { useNavigate } from 'react-router-dom'
+import { PromotionModal } from './PromotionForm'
 import { toast } from 'sonner'
 
 export function PromotionList() {
-  const navigate = useNavigate()
   const [promotions, setPromotions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('all')
+  const [modal, setModal] = useState<{ open: boolean; promotionId: number | null }>({ open: false, promotionId: null })
 
   const loadPromotions = async () => {
     try {
@@ -111,10 +111,17 @@ export function PromotionList() {
         loading={loading}
         searchPlaceholder="Buscar promoções..."
         filters={filters}
-        onNewClick={() => navigate('/admin/promocoes/nova')}
+        onNewClick={() => setModal({ open: true, promotionId: null })}
         newLabel="Nova Promoção"
-        onEdit={(p: any) => navigate(`/admin/promocoes/${p.id}`)}
+        onEdit={(p: any) => setModal({ open: true, promotionId: p.id })}
         onDelete={handleDelete}
+      />
+
+      <PromotionModal
+        promotionId={modal.promotionId}
+        open={modal.open}
+        onClose={() => setModal({ open: false, promotionId: null })}
+        onSaved={loadPromotions}
       />
     </AdminLayout>
   )

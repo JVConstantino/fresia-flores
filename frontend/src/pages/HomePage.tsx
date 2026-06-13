@@ -13,6 +13,9 @@ import { ChevronLeft, ChevronRight, MapPin, Phone, Mail, Clock } from 'lucide-re
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Marquee } from '@/components/ui/marquee'
+import { NumberTicker } from '@/components/ui/number-ticker'
+import { BlurFade } from '@/components/ui/blur-fade'
 
 
 function parseFirstImage(images: any): string | null {
@@ -202,15 +205,21 @@ export function HomePage() {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-6 border-t border-ink-400/10">
                 <div>
-                  <div className="font-display text-2xl font-medium text-ink-900">2.400+</div>
+                  <div className="font-display text-2xl font-medium text-ink-900">
+                    <NumberTicker value={2400} className="font-display text-2xl font-medium text-ink-900" />+
+                  </div>
                   <div className="text-xs text-ink-500 mt-0.5">Clientes Felizes</div>
                 </div>
                 <div>
-                  <div className="font-display text-2xl font-medium text-ink-900">98%</div>
+                  <div className="font-display text-2xl font-medium text-ink-900">
+                    <NumberTicker value={98} className="font-display text-2xl font-medium text-ink-900" />%
+                  </div>
                   <div className="text-xs text-ink-500 mt-0.5">Satisfação</div>
                 </div>
                 <div>
-                  <div className="font-display text-2xl font-medium text-ink-900">4.8★</div>
+                  <div className="font-display text-2xl font-medium text-ink-900">
+                    <NumberTicker value={4.8} decimalPlaces={1} className="font-display text-2xl font-medium text-ink-900" />★
+                  </div>
                   <div className="text-xs text-ink-500 mt-0.5">Avaliação</div>
                 </div>
               </div>
@@ -289,23 +298,14 @@ export function HomePage() {
 
       {/* Marquee */}
       <section className="mt-7 py-5 border-t border-b border-ink-200 overflow-hidden">
-        <style>{`
-          @keyframes marquee { to { transform: translateX(-50%); } }
-          .marquee-track { display: inline-flex; gap: 60px; animation: marquee 40s linear infinite; white-space: nowrap; }
-        `}</style>
-        <div className="marquee-track font-display italic text-2xl text-ink-400">
-          <span>Rosas Clássicas</span>
-          <span style={{ color: '#f5a98c' }}>✿</span>
-          <span>Peônias Luxo</span>
-          <span style={{ color: '#f5a98c' }}>✿</span>
-          <span>Tulipas Coloridas</span>
-          <span style={{ color: '#f5a98c' }}>✿</span>
-          <span>Orquídeas Raras</span>
-          <span style={{ color: '#f5a98c' }}>✿</span>
-          <span>Rosas Clássicas</span>
-          <span style={{ color: '#f5a98c' }}>✿</span>
-          <span>Peônias Luxo</span>
-        </div>
+        <Marquee pauseOnHover className="[--duration:40s] [--gap:60px]">
+          {['Rosas Clássicas', 'Peônias Luxo', 'Tulipas Coloridas', 'Orquídeas Raras', 'Lírios Brancos', 'Gérberas Vibrantes'].map((item) => (
+            <span key={item} className="font-display italic text-2xl text-ink-400 flex items-center gap-[60px]">
+              {item}
+              <span style={{ color: '#f5a98c' }}>✿</span>
+            </span>
+          ))}
+        </Marquee>
       </section>
 
       {/* Categories Section */}
@@ -412,18 +412,19 @@ export function HomePage() {
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8 sm:mb-12">
-          {trendingProducts.slice(0, 8).map(product => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              name={product.name}
-              slug={product.slug}
-              image={product.images?.[0]}
-              price={product.price}
-              category={product.category?.name || 'Flores'}
-              stock={product.stock}
-              onQuickView={() => setQuickViewProduct(product)}
-            />
+          {trendingProducts.slice(0, 8).map((product, i) => (
+            <BlurFade key={product.id} delay={i * 0.05} inView>
+              <ProductCard
+                id={product.id}
+                name={product.name}
+                slug={product.slug}
+                image={product.images?.[0]}
+                price={product.price}
+                category={product.category?.name || 'Flores'}
+                stock={product.stock}
+                onQuickView={() => setQuickViewProduct(product)}
+              />
+            </BlurFade>
           ))}
         </div>
 

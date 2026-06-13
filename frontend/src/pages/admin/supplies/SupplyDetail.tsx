@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowDown, ArrowUp, RefreshCw, X } from 'lucide-react'
+import { ArrowLeft, ArrowDown, ArrowUp, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { AdminLayout } from '@/components/admin/AdminLayout'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { supplyService, type SupplyDetail as SD } from '@/services/supplyService'
@@ -87,23 +88,23 @@ export function SupplyDetail() {
         <div className="space-y-4">
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white border border-ink-200 rounded-xl p-4">
+            <div className="bg-white rounded-lg p-4">
               <p className="text-xs text-ink-500 uppercase mb-1">Estoque atual</p>
               <p className="text-2xl font-display text-ink-800">{Number(supply.currentStock).toFixed(2)}</p>
               <p className="text-xs text-ink-400">{supply.unit}</p>
             </div>
-            <div className="bg-white border border-ink-200 rounded-xl p-4">
+            <div className="bg-white rounded-lg p-4">
               <p className="text-xs text-ink-500 uppercase mb-1">Custo unitário</p>
               <p className="text-2xl font-display text-ink-800">{formatPrice(Number(supply.costPerUnit))}</p>
             </div>
-            <div className="bg-white border border-ink-200 rounded-xl p-4">
+            <div className="bg-white rounded-lg p-4">
               <p className="text-xs text-ink-500 uppercase mb-1">Valor em estoque</p>
               <p className="text-2xl font-display text-lilac-600">{formatPrice(totalValue)}</p>
             </div>
           </div>
 
           {/* Histórico */}
-          <div className="bg-white border border-ink-200 rounded-xl overflow-hidden">
+          <div className="bg-white rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-ink-100 flex items-center justify-between">
               <h3 className="font-semibold text-ink-800">Histórico de movimentações</h3>
               <Button size="sm" onClick={() => setShowMovForm(true)} className="bg-lilac-500 hover:bg-lilac-600">
@@ -113,7 +114,8 @@ export function SupplyDetail() {
             {supply.movements.length === 0 ? (
               <div className="py-12 text-center text-ink-400">Nenhuma movimentação ainda</div>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[480px]">
                 <thead>
                   <tr className="bg-ink-50 border-b border-ink-100">
                     <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-500">Tipo</th>
@@ -145,12 +147,13 @@ export function SupplyDetail() {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>
 
         <aside>
-          <div className="bg-white border border-ink-200 rounded-xl p-4 space-y-3 sticky top-24">
+          <div className="bg-white rounded-lg p-4 space-y-3 sticky top-24">
             <h3 className="text-sm font-semibold text-ink-800">Detalhes</h3>
             <div className="space-y-2 text-sm">
               <div><span className="text-ink-500">Unidade:</span> <span className="font-medium">{supply.unit}</span></div>
@@ -162,17 +165,13 @@ export function SupplyDetail() {
         </aside>
       </div>
 
-      {showMovForm && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setShowMovForm(false)}>
-          <div className="bg-white rounded-xl p-5 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold">Registrar movimentação</h3>
-              <button onClick={() => setShowMovForm(false)} className="text-ink-400">
-                <X size={18} />
-              </button>
-            </div>
+      <Dialog open={showMovForm} onOpenChange={() => setShowMovForm(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Registrar movimentação</DialogTitle>
+          </DialogHeader>
 
-            <div className="space-y-3">
+            <div className="space-y-3 pt-2">
               <div className="grid grid-cols-3 gap-2">
                 {(['in', 'out', 'adjustment'] as const).map(t => (
                   <button
@@ -196,9 +195,8 @@ export function SupplyDetail() {
                 {saving ? 'Salvando...' : 'Registrar'}
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   )
 }
